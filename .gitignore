@@ -1,0 +1,24 @@
+# Data & model artifacts
+data/
+__pycache__/
+*.pyc
+
+# Virtual environments
+.venv/
+.ml2_env/
+
+# Office & docs (keep slides/docs out of the repo)
+*.pptx
+*.docx
+*.pdf
+*.jpg
+~$*
+
+# OS
+.DS_Store
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Misc
+resources/
