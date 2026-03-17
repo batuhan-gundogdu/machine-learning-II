@@ -1,0 +1,3074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture-1: Introduction to Deep Learning — ML II</title>
+<style>
+:root {
+  --bg: #f8f9fa;
+  --text: #1a1a2e;
+  --text-light: #555;
+  --card-bg: #fff;
+  --sidebar-bg: #1a1a2e;
+  --sidebar-text: #ccc;
+  --sidebar-active: #fff;
+  --accent-1: #3B82F6;
+  --accent-2: #10B981;
+  --accent-3: #8B5CF6;
+  --accent-4: #F59E0B;
+  --accent-5: #EF4444;
+  --accent-6: #6366F1;
+  --accent-7: #14B8A6;
+  --accent-8: #EC4899;
+  --accent-9: #06B6D4;
+  --accent-10: #A855F7;
+  --accent-11: #F97316;
+  --accent-12: #22C55E;
+  --accent-13: #64748B;
+  --correct: #10B981;
+  --incorrect: #EF4444;
+  --border: #e2e8f0;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  display: flex;
+}
+
+/* Sidebar */
+nav.sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: 260px;
+  height: 100vh;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  padding: 2rem 0;
+  overflow-y: auto;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+nav.sidebar .logo {
+  padding: 0 1.5rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 1rem;
+}
+
+nav.sidebar .logo h2 {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+nav.sidebar .logo p {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  margin-top: 0.25rem;
+}
+
+nav.sidebar ul {
+  list-style: none;
+  flex: 1;
+}
+
+nav.sidebar li a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+
+nav.sidebar li a:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.05);
+}
+
+nav.sidebar li a.active {
+  color: var(--sidebar-active);
+  border-left-color: var(--accent-1);
+  background: rgba(255,255,255,0.08);
+}
+
+nav.sidebar li a .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.progress-container {
+  padding: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin-top: auto;
+}
+
+.progress-container p {
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.7;
+}
+
+.progress-bar {
+  height: 6px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent-2);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+
+.progress-text {
+  font-size: 0.75rem;
+  margin-top: 0.35rem;
+  opacity: 0.5;
+}
+
+/* Main content */
+main {
+  margin-left: 260px;
+  flex: 1;
+  min-height: 100vh;
+}
+
+header.hero {
+  background: linear-gradient(135deg, var(--sidebar-bg) 0%, #2d2d5e 100%);
+  color: #fff;
+  padding: 5rem 3rem 4rem;
+}
+
+header.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.75rem;
+}
+
+header.hero p {
+  font-size: 1.15rem;
+  opacity: 0.75;
+  max-width: 600px;
+}
+
+/* Sections */
+section {
+  padding: 4rem 3rem;
+  max-width: 900px;
+}
+
+section .section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+section .section-number {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+section h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+section h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 2rem 0 0.75rem;
+  color: var(--text);
+}
+
+section p {
+  color: var(--text-light);
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+section ul, section ol {
+  color: var(--text-light);
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+section li { margin-bottom: 0.35rem; }
+
+.highlight {
+  background: #eef2ff;
+  border-left: 4px solid var(--accent-1);
+  padding: 1rem 1.25rem;
+  border-radius: 0 8px 8px 0;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+}
+
+.highlight strong { color: var(--text); }
+
+code {
+  background: #f1f5f9;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+/* Interactive demo containers */
+.demo-container {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin: 2rem 0;
+  box-shadow: var(--shadow);
+}
+
+.demo-container .demo-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.demo-container canvas {
+  display: block;
+  margin: 0 auto;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--border);
+}
+
+.demo-controls {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.demo-controls label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.demo-controls input[type="range"] {
+  width: 160px;
+  accent-color: var(--accent-1);
+}
+
+.demo-controls .value {
+  font-family: 'SF Mono', monospace;
+  font-size: 0.85rem;
+  background: #f1f5f9;
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+  min-width: 50px;
+  text-align: center;
+}
+
+.demo-info {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-light);
+  font-family: 'SF Mono', monospace;
+}
+
+button.demo-btn {
+  background: var(--accent-1);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+button.demo-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+button.demo-btn:active { transform: translateY(0); }
+button.demo-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+button.demo-btn.secondary {
+  background: #f1f5f9;
+  color: var(--text);
+}
+
+button.demo-btn.secondary:hover { background: #e2e8f0; }
+
+/* Quiz */
+.quiz-container {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  margin: 2.5rem 0;
+  box-shadow: var(--shadow);
+}
+
+.quiz-container .quiz-header {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1.5rem;
+  color: var(--text-light);
+}
+
+.quiz-question {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.quiz-question:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.quiz-question p.q-text {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.quiz-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.quiz-option:hover { border-color: #94a3b8; background: #f8fafc; }
+
+.quiz-option.selected { border-color: var(--accent-1); background: #eff6ff; }
+.quiz-option.correct { border-color: var(--correct); background: #ecfdf5; }
+.quiz-option.incorrect { border-color: var(--incorrect); background: #fef2f2; }
+.quiz-option.disabled { pointer-events: none; opacity: 0.7; }
+.quiz-option.disabled.correct { opacity: 1; }
+
+.quiz-option .marker {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.quiz-option.selected .marker { border-color: var(--accent-1); background: var(--accent-1); color: #fff; }
+.quiz-option.correct .marker { border-color: var(--correct); background: var(--correct); color: #fff; }
+.quiz-option.incorrect .marker { border-color: var(--incorrect); background: var(--incorrect); color: #fff; }
+
+.quiz-feedback {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  display: none;
+}
+
+.quiz-feedback.show { display: block; }
+.quiz-feedback.correct { background: #ecfdf5; color: #065f46; }
+.quiz-feedback.incorrect { background: #fef2f2; color: #991b1b; }
+
+/* Supervised learning demo */
+.label-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.label-card {
+  background: #f8fafc;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.label-card .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.label-card .label { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+
+.label-card.unlabeled {
+  border-style: dashed;
+  cursor: pointer;
+}
+
+.label-card.unlabeled:hover { border-color: var(--accent-2); background: #f0fdf4; }
+
+.label-card.labeled-correct { border-color: var(--correct); background: #ecfdf5; }
+.label-card.labeled-incorrect { border-color: var(--incorrect); background: #fef2f2; }
+
+.label-options {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.label-options button {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.label-options button:hover { background: #f1f5f9; }
+
+/* Self-supervised demo */
+.sentence-demo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sentence-display {
+  font-size: 1.3rem;
+  font-weight: 500;
+  text-align: center;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  line-height: 1.8;
+}
+
+.sentence-display .mask {
+  background: var(--accent-4);
+  color: #fff;
+  padding: 0.2em 0.6em;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.guess-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.guess-row input {
+  padding: 0.6rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 200px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.guess-row input:focus { border-color: var(--accent-4); }
+
+.prediction-result {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 8px;
+  display: none;
+  font-size: 0.95rem;
+}
+
+.prediction-result.show { display: block; }
+
+/* RL Grid */
+.rl-stats {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.rl-stat {
+  text-align: center;
+}
+
+.rl-stat .stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: 'SF Mono', monospace;
+}
+
+.rl-stat .stat-label {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Divider between sections */
+section + section { border-top: 1px solid var(--border); }
+
+/* Section accent colors */
+.accent-1 { color: var(--accent-1); }
+.accent-2 { color: var(--accent-2); }
+.accent-3 { color: var(--accent-3); }
+.accent-4 { color: var(--accent-4); }
+.accent-5 { color: var(--accent-5); }
+.accent-6 { color: var(--accent-6); }
+.accent-7 { color: var(--accent-7); }
+.accent-8 { color: var(--accent-8); }
+.accent-9 { color: var(--accent-9); }
+.accent-10 { color: var(--accent-10); }
+.accent-11 { color: var(--accent-11); }
+.accent-12 { color: var(--accent-12); }
+.accent-13 { color: var(--accent-13); }
+
+.bg-accent-1 { background: var(--accent-1); }
+.bg-accent-2 { background: var(--accent-2); }
+.bg-accent-3 { background: var(--accent-3); }
+.bg-accent-4 { background: var(--accent-4); }
+.bg-accent-5 { background: var(--accent-5); }
+.bg-accent-6 { background: var(--accent-6); }
+.bg-accent-7 { background: var(--accent-7); }
+.bg-accent-8 { background: var(--accent-8); }
+.bg-accent-9 { background: var(--accent-9); }
+.bg-accent-10 { background: var(--accent-10); }
+.bg-accent-11 { background: var(--accent-11); }
+.bg-accent-12 { background: var(--accent-12); }
+.bg-accent-13 { background: var(--accent-13); }
+
+/* Cross-validation fold grid */
+.cv-grid {
+  display: grid;
+  gap: 4px;
+  margin: 1rem 0;
+}
+
+.cv-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cv-row .cv-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  width: 50px;
+  text-align: right;
+  color: var(--text-light);
+  flex-shrink: 0;
+}
+
+.cv-fold {
+  flex: 1;
+  height: 32px;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.cv-fold.train { background: var(--accent-1); opacity: 0.7; }
+.cv-fold.val { background: var(--accent-11); }
+
+.cv-legend {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.cv-legend span {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cv-legend .swatch {
+  width: 14px; height: 14px;
+  border-radius: 3px;
+}
+
+/* Decomposition bar */
+.decomp-bar {
+  display: flex;
+  height: 36px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.decomp-bar > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  transition: width 0.5s;
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar Navigation -->
+<nav class="sidebar">
+  <div class="logo">
+    <h2>ML II — Deep Learning</h2>
+    <p>Interactive Concepts Module</p>
+  </div>
+  <ul>
+    <li><a href="#learning" class="active">
+      <span class="dot bg-accent-1"></span> Learning
+    </a></li>
+    <li><a href="#supervised">
+      <span class="dot bg-accent-2"></span> Supervised Learning
+    </a></li>
+    <li><a href="#unsupervised">
+      <span class="dot bg-accent-3"></span> Unsupervised Learning
+    </a></li>
+    <li><a href="#self-supervised">
+      <span class="dot bg-accent-4"></span> Self-Supervised Learning
+    </a></li>
+    <li><a href="#reinforcement">
+      <span class="dot bg-accent-5"></span> Reinforcement Learning
+    </a></li>
+    <li><a href="#deep-learning">
+      <span class="dot bg-accent-6"></span> Deep Learning
+    </a></li>
+    <li><a href="#model-complexity">
+      <span class="dot bg-accent-7"></span> Model Complexity
+    </a></li>
+    <li><a href="#bias">
+      <span class="dot bg-accent-8"></span> Bias
+    </a></li>
+    <li><a href="#variance">
+      <span class="dot bg-accent-9"></span> Variance
+    </a></li>
+    <li><a href="#train-val-curves">
+      <span class="dot bg-accent-10"></span> Train / Val Curves
+    </a></li>
+    <li><a href="#underfitting-overfitting">
+      <span class="dot bg-accent-11"></span> Under &amp; Overfitting
+    </a></li>
+    <li><a href="#cross-validation">
+      <span class="dot bg-accent-12"></span> Cross Validation
+    </a></li>
+    <li><a href="#bayes-error">
+      <span class="dot bg-accent-13"></span> Bayes Error
+    </a></li>
+  </ul>
+  <div class="progress-container">
+    <p>Quiz Progress</p>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">0 / 26 questions</div>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<main>
+
+<header class="hero">
+  <h1>Lecture-1: Introduction to Deep Learning</h1>
+  <p>An interactive guide to the foundational concepts — from what "learning" means to how deep neural networks work.</p>
+</header>
+
+<!-- ==================== SECTION 1: LEARNING ==================== -->
+<section id="learning">
+  <div class="section-header">
+    <div class="section-number bg-accent-1">1</div>
+    <h2>Learning</h2>
+  </div>
+
+  <h3>What is a Model?</h3>
+  <p>In machine learning, a <strong>model</strong> is a mathematical function. It takes an input (an image, a number, a sentence) and produces an output (a category, a prediction, a score).</p>
+  <p>The simplest model you can imagine is a straight line:</p>
+  <div class="highlight">
+    <strong>y = w &middot; x + b</strong><br>
+    <strong>x</strong> is the input, <strong>y</strong> is the output, and <strong>w</strong> (weight) and <strong>b</strong> (bias) are the model's <strong>parameters</strong>.
+  </div>
+
+  <h3>What are Parameters?</h3>
+  <p>Parameters are the adjustable knobs of a model. Different parameter values produce different outputs for the same input. A model with <code>w=2, b=1</code> behaves completely differently from one with <code>w=-1, b=5</code>.</p>
+
+  <h3>What is Learning?</h3>
+  <p><strong>Learning</strong> is the process of finding parameter values that make the model's outputs match the desired outputs as closely as possible. We measure mismatch with a <strong>loss function</strong> (like Mean Squared Error), and learning means minimizing this loss.</p>
+
+  <!-- Interactive Demo -->
+  <div class="demo-container">
+    <div class="demo-title accent-1">&#9658; Interactive: Fit the Line</div>
+    <p style="font-size:0.9rem; color:var(--text-light); margin-bottom:1rem;">Drag the sliders to adjust <strong>w</strong> and <strong>b</strong>. The left plot shows the line fit; the right plot shows the <strong>error surface</strong> — every point in (w, b) space has an error value, and the white dot is where you are now. Try to move the dot to the dark valley (low error). Then click <strong>Auto-fit</strong> to watch gradient descent trace a path to the minimum!</p>
+    <div style="display:flex; gap:1.25rem; flex-wrap:wrap; align-items:start;">
+      <div>
+        <canvas id="linearCanvas" width="440" height="320"></canvas>
+        <div style="text-align:center; font-size:0.8rem; color:var(--text-light); margin-top:0.35rem;">Data &amp; Model Fit</div>
+      </div>
+      <div>
+        <canvas id="errorSurfaceCanvas" width="340" height="320"></canvas>
+        <div style="text-align:center; font-size:0.8rem; color:var(--text-light); margin-top:0.35rem;">Error Surface — MSE(w, b)</div>
+      </div>
+    </div>
+    <div class="demo-controls">
+      <label>w: <input type="range" id="sliderW" min="-5" max="5" step="0.1" value="0"> <span class="value" id="valW">0.0</span></label>
+      <label>b: <input type="range" id="sliderB" min="-10" max="10" step="0.1" value="0"> <span class="value" id="valB">0.0</span></label>
+      <button class="demo-btn" id="btnAutoFit">Auto-fit</button>
+      <button class="demo-btn secondary" id="btnResetLine">Reset</button>
+    </div>
+    <div class="demo-info" id="linearInfo">MSE = —</div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz-container" id="quiz-learning"></div>
+</section>
+
+<!-- ==================== SECTION 2: SUPERVISED LEARNING ==================== -->
+<section id="supervised">
+  <div class="section-header">
+    <div class="section-number bg-accent-2">2</div>
+    <h2>Supervised Learning</h2>
+  </div>
+
+  <p>Supervised learning is like learning with a teacher. The model is given:</p>
+  <ul>
+    <li><strong>Inputs</strong> — e.g., images of clothing items</li>
+    <li><strong>Labels</strong> — e.g., "T-shirt", "Sneaker", "Dress"</li>
+  </ul>
+  <p>The model learns to map inputs to the correct labels by adjusting its parameters to minimize the difference between its predictions and the true labels. The labels act as <strong>supervision</strong> — they tell the model what the right answer is.</p>
+
+  <div class="highlight">
+    <strong>Examples of supervised learning:</strong> Image classification, spam detection, speech recognition, medical diagnosis, predicting house prices.
+  </div>
+
+  <div class="quiz-container" id="quiz-supervised"></div>
+</section>
+
+<!-- ==================== SECTION 3: UNSUPERVISED LEARNING ==================== -->
+<section id="unsupervised">
+  <div class="section-header">
+    <div class="section-number bg-accent-3">3</div>
+    <h2>Unsupervised Learning</h2>
+  </div>
+
+  <p>What if we have data but <strong>no labels</strong>? Unsupervised learning finds hidden patterns and structures in unlabeled data.</p>
+  <p>The model examines the data on its own and discovers:</p>
+  <ul>
+    <li><strong>Clusters</strong> — groups of similar items</li>
+    <li><strong>Patterns</strong> — underlying structure in the data</li>
+    <li><strong>Anomalies</strong> — unusual data points that don't fit</li>
+  </ul>
+  <p>No one tells the model what to look for — it finds structure by itself.</p>
+
+  <div class="highlight">
+    <strong>Examples:</strong> Customer segmentation, anomaly detection, topic discovery in documents, dimensionality reduction.
+  </div>
+
+  <div class="quiz-container" id="quiz-unsupervised"></div>
+</section>
+
+<!-- ==================== SECTION 4: SELF-SUPERVISED LEARNING ==================== -->
+<section id="self-supervised">
+  <div class="section-header">
+    <div class="section-number bg-accent-4">4</div>
+    <h2>Self-Supervised Learning</h2>
+  </div>
+
+  <p>Self-supervised learning is a clever trick: the model <strong>creates its own labels</strong> from the data itself.</p>
+  <p><strong>How?</strong> By hiding part of the input and training the model to predict the hidden part:</p>
+  <ul>
+    <li><strong>Text:</strong> Mask a word in a sentence &rarr; predict the missing word. <em>This is how GPT and BERT learn!</em></li>
+    <li><strong>Images:</strong> Mask a patch of an image &rarr; predict the missing pixels.</li>
+    <li><strong>Audio:</strong> Predict the next segment of a sound clip.</li>
+  </ul>
+  <p>Because labels come from the data itself, models can learn from <strong>massive amounts of unlabeled data</strong> — the entire internet, for instance.</p>
+
+  <div class="highlight">
+    <strong>Key insight:</strong> Self-supervised learning bridges supervised and unsupervised learning. The data is unlabeled, but the model creates a supervised task for itself automatically.
+  </div>
+
+  <!-- Interactive Demo -->
+  <div class="demo-container">
+    <div class="demo-title accent-4">&#9658; Interactive: Predict the Masked Word</div>
+    <p style="font-size:0.9rem; color:var(--text-light); margin-bottom:1rem;">A word has been masked. Type your guess, then see how well you match the model's prediction. This is exactly how language models are trained!</p>
+    <div class="sentence-demo">
+      <div class="sentence-display" id="sentenceDisplay"></div>
+      <div class="guess-row">
+        <input type="text" id="guessInput" placeholder="Type your guess...">
+        <button class="demo-btn" id="btnGuess" style="background:var(--accent-4)">Check</button>
+        <button class="demo-btn secondary" id="btnNextSentence">Next Sentence</button>
+      </div>
+      <div class="prediction-result" id="predictionResult"></div>
+    </div>
+  </div>
+
+  <div class="quiz-container" id="quiz-self-supervised"></div>
+</section>
+
+<!-- ==================== SECTION 5: REINFORCEMENT LEARNING ==================== -->
+<section id="reinforcement">
+  <div class="section-header">
+    <div class="section-number bg-accent-5">5</div>
+    <h2>Reinforcement Learning</h2>
+  </div>
+
+  <p>Reinforcement learning is learning by <strong>trial and error</strong>, much like teaching a dog with treats.</p>
+  <p>An <strong>agent</strong> interacts with an <strong>environment</strong>:</p>
+  <ol>
+    <li>The agent observes a <strong>state</strong> (where it is)</li>
+    <li>It chooses an <strong>action</strong> (where to go)</li>
+    <li>The environment returns a <strong>reward</strong> (good or bad?)</li>
+    <li>The agent updates its <strong>policy</strong> (strategy) to get more reward next time</li>
+  </ol>
+  <p>Over many episodes of trial and error, the agent learns to make better decisions.</p>
+
+  <div class="highlight">
+    <strong>Examples:</strong> Game-playing AI (chess, Go, Atari), robotics, autonomous driving, resource management.
+  </div>
+
+  <div class="quiz-container" id="quiz-reinforcement"></div>
+</section>
+
+<!-- ==================== SECTION 6: DEEP LEARNING ==================== -->
+<section id="deep-learning">
+  <div class="section-header">
+    <div class="section-number bg-accent-6">6</div>
+    <h2>Deep Learning</h2>
+  </div>
+
+  <p>Deep learning uses <strong>neural networks with many layers</strong> to learn complex patterns. A neural network is a model made of layers of interconnected "neurons," each performing a simple computation. What makes it powerful is the <strong>depth</strong> — stacking many layers.</p>
+
+  <h3>Why Depth Matters</h3>
+  <p>Each layer transforms the data into a more useful representation:</p>
+  <ul>
+    <li><strong>Early layers</strong> detect simple features (edges, colors, basic sounds)</li>
+    <li><strong>Middle layers</strong> combine features into patterns (textures, shapes, phonemes)</li>
+    <li><strong>Deep layers</strong> recognize high-level concepts (faces, objects, words)</li>
+  </ul>
+  <p>A shallow network (one layer) can only learn simple, linear relationships. A deep network can learn <strong>increasingly abstract and complex</strong> representations.</p>
+
+  <div class="highlight">
+    <strong>Why "deep"?</strong> The word "deep" simply refers to the number of layers. A network with 2 hidden layers is deeper than one with 1. Modern networks (like GPT or image classifiers) can have hundreds of layers and billions of parameters.
+  </div>
+
+  <!-- Interactive Demo -->
+  <div class="demo-container">
+    <div class="demo-title accent-6">&#9658; Interactive: Network Depth Visualizer</div>
+    <p style="font-size:0.9rem; color:var(--text-light); margin-bottom:1rem;">Add or remove hidden layers to see how network architecture and the complexity of learnable functions changes.</p>
+    <canvas id="networkCanvas" width="600" height="300"></canvas>
+    <div class="demo-controls">
+      <button class="demo-btn" id="btnRemoveLayer" style="background:var(--accent-6)">− Remove Layer</button>
+      <button class="demo-btn" id="btnAddLayer" style="background:var(--accent-6)">+ Add Layer</button>
+      <span class="demo-info" id="networkInfo" style="margin:0">0 hidden layers &middot; 0 parameters</span>
+    </div>
+    <div style="margin-top:1.25rem;">
+      <p style="font-size:0.85rem; font-weight:600; margin-bottom:0.5rem;">What this network can learn:</p>
+      <canvas id="boundaryCanvas" width="520" height="200"></canvas>
+    </div>
+  </div>
+
+  <div class="quiz-container" id="quiz-deep-learning"></div>
+</section>
+
+<!-- ==================== SECTION 7: MODEL COMPLEXITY ==================== -->
+<section id="model-complexity">
+  <div class="section-header">
+    <div class="section-number bg-accent-7">7</div>
+    <h2>Model Complexity</h2>
+  </div>
+
+  <p>Model complexity refers to how flexible a model is — how many different patterns it can represent. A more complex model can capture more intricate relationships, but this flexibility comes with trade-offs.</p>
+
+  <h3>What Controls Complexity?</h3>
+  <ul>
+    <li><strong>Number of parameters</strong> — more weights and biases means more knobs to tune</li>
+    <li><strong>Number of layers</strong> — deeper networks can represent more abstract features</li>
+    <li><strong>Polynomial degree</strong> — a degree-1 polynomial is a line, degree-5 can wiggle, degree-15 can fit nearly anything</li>
+    <li><strong>Model type</strong> — a linear model is simpler than a decision tree, which is simpler than a deep neural network</li>
+  </ul>
+
+  <div class="highlight">
+    <strong>Key insight:</strong> More complexity is not always better. A model that is too simple can't learn the pattern (underfitting). A model that is too complex memorizes noise (overfitting). The goal is to find the right level of complexity for your data.
+  </div>
+
+  <div class="demo-container">
+    <div class="demo-title accent-7">&#9658; Interactive: Complexity &amp; Polynomial Degree</div>
+    <p style="font-size:0.9rem; color:var(--text-light); margin-bottom:1rem;">Change the polynomial degree to see how model complexity affects the fit. Low degree = simple model, high degree = complex model.</p>
+    <canvas id="complexityCanvas" width="560" height="320"></canvas>
+    <div class="demo-controls">
+      <label>Polynomial degree: <input type="range" id="sliderDegree" min="1" max="12" step="1" value="1"> <span class="value" id="valDegree">1</span></label>
+    </div>
+    <div class="demo-info" id="complexityInfo">Degree 1 → 2 parameters</div>
+  </div>
+
+  <div class="quiz-container" id="quiz-model-complexity"></div>
+</section>
+
+<!-- ==================== SECTION 8: BIAS ==================== -->
+<section id="bias">
+  <div class="section-header">
+    <div class="section-number bg-accent-8">8</div>
+    <h2>Bias</h2>
+  </div>
+
+  <p>In machine learning, <strong>bias</strong> refers to the error introduced by approximating a complex real-world phenomenon with a simplified model. It measures how far off the model's predictions are from the true values, <em>even on the training data</em>.</p>
+
+  <h3>High Bias = Underfitting</h3>
+  <p>A model with high bias is too simple to capture the underlying pattern. It makes strong assumptions about the data (e.g., "the relationship is linear") and systematically misses the true structure. No matter how much training data you give it, it will keep making the same types of errors.</p>
+
+  <div class="highlight">
+    <strong>Think of it this way:</strong> Bias is the model's <em>imperfection</em> — its inability to represent the true relationship. A straight line trying to fit a curve will always have high bias, because it <em>can't</em> bend.
+  </div>
+
+  <div class="demo-container">
+    <div class="demo-title accent-8">&#9658; Interactive: Seeing Bias</div>
+    <p style="font-size:0.9rem; color:var(--text-light); margin-bottom:1rem;">The dashed line is the <strong>true function</strong>. The solid line is the model's fit. With low degree, the model <em>systematically</em> misses the pattern — that's bias.</p>
+    <canvas id="biasCanvas" width="560" height="320"></canvas>
+    <div class="demo-controls">
+      <label>Model complexity: <input type="range" id="sliderBias" min="1" max="12" step="1" value="1"> <span class="value" id="valBiasDeg">1</span></label>
+    </div>
+    <div class="demo-info" id="biasInfo">Training MSE = —</div>
+  </div>
+
+  <div class="quiz-container" id="quiz-bias"></div>
+</section>
+
+<!-- ==================== SECTION 9: VARIANCE ==================== -->
+<section id="variance">
+  <div class="section-header">
+    <div class="section-number bg-accent-9">9</div>
+    <h2>Variance</h2>
+  </div>
+
+  <p><strong>Variance</strong> measures how much the model's predictions change when you train it on <em>different</em> training sets. A high-variance model is very sensitive to which data it sees — small changes in the training set lead to wildly different fitted models.</p>
+
+  <h3>High Variance = Overfitting</h3>
+  <p>A complex model has the flexibility to fit not just the underlying pattern, but also the noise in each specific training set. When trained on a different sample, it fits <em>that</em> noise instead — producing a very different model each time.</p>
+
+  <div class="highlight">
+    <strong>Think of it this way:</strong> Train the same model on 5 different random samples from the same population. If the 5 fitted curves look similar → low variance. If they look wildly different → high variance.
+  </div>
+
+  <div class="demo-container">
+    <div class="demo-title accent-9">&#9658; Interactive: Seeing Variance</div>
+    <p style="font-size:0.9rem; color:var(--text-light); margin-bottom:1rem;">5 models trained on 5 different random samples. At low complexity they agree (low variance). At high complexity they diverge wildly (high variance).</p>
+    <canvas id="varianceCanvas" width="560" height="320"></canvas>
+    <div class="demo-controls">
+      <label>Model complexity: <input type="range" id="sliderVariance" min="1" max="10" step="1" value="1"> <span class="value" id="valVarianceDeg">1</span></label>
+      <button class="demo-btn" id="btnResample" style="background:var(--accent-9)">New Samples</button>
+    </div>
+    <div class="demo-info" id="varianceInfo">Variance: Low</div>
+  </div>
+
+  <div class="quiz-container" id="quiz-variance"></div>
+</section>
+
+<!-- ==================== SECTION 10: TRAINING / VALIDATION CURVES ==================== -->
+<section id="train-val-curves">
+  <div class="section-header">
+    <div class="section-number bg-accent-10">10</div>
+    <h2>Training &amp; Validation Accuracy</h2>
+  </div>
+
+  <p>As a model trains over many <strong>epochs</strong> (passes through the training data), we track two quantities:</p>
+  <ul>
+    <li><strong>Training accuracy</strong> — how well the model fits the data it's learning from</li>
+    <li><strong>Validation accuracy</strong> — how well the model performs on held-out data it hasn't seen</li>
+  </ul>
+  <p>The gap between these two curves tells an important story:</p>
+  <ul>
+    <li><strong>Both low</strong> → underfitting (model too simple)</li>
+    <li><strong>Both high &amp; close</strong> → good fit</li>
+    <li><strong>Train high, val low/declining</strong> → overfitting (model memorizing noise)</li>
+  </ul>
+
+  <div class="demo-container">
+    <div class="demo-title accent-10">&#9658; Interactive: Training Curves</div>
+    <p style="font-size:0.9rem; color:var(--text-light); margin-bottom:1rem;">Pick a model complexity and click <strong>Train</strong> to watch accuracy evolve over epochs. Notice how the gap between training and validation changes.</p>
+    <canvas id="epochCanvas" width="560" height="340"></canvas>
+    <div class="demo-controls">
+      <button class="demo-btn" id="btnTrainSimple" style="background:var(--accent-10)">Simple Model</button>
+      <button class="demo-btn" id="btnTrainMedium" style="background:var(--accent-10)">Good Model</button>
+      <button class="demo-btn" id="btnTrainComplex" style="background:var(--accent-10)">Complex Model</button>
+      <button class="demo-btn secondary" id="btnResetEpoch">Reset</button>
+    </div>
+    <div class="demo-info" id="epochInfo">Pick a model and click to train</div>
+  </div>
+
+  <div class="quiz-container" id="quiz-train-val-curves"></div>
+</section>
+
+<!-- ==================== SECTION 11: UNDERFITTING & OVERFITTING ==================== -->
+<section id="underfitting-overfitting">
+  <div class="section-header">
+    <div class="section-number bg-accent-11">11</div>
+    <h2>Underfitting &amp; Overfitting</h2>
+  </div>
+
+  <p>This is the central tension in machine learning:</p>
+  <ul>
+    <li><strong>Underfitting</strong> — the model is too simple. It can't capture the true pattern. Both training and validation errors are high. (High bias, low variance)</li>
+    <li><strong>Overfitting</strong> — the model is too complex. It memorizes the training data, including its noise. Training error is low but validation error is high. (Low bias, high variance)</li>
+  </ul>
+  <p>The <strong>sweet spot</strong> is the model complexity where validation error is minimized — complex enough to learn the pattern, but not so complex that it memorizes noise.</p>
+
+  <div class="highlight">
+    <strong>The classic U-curve:</strong> As model complexity increases, training error always decreases. But validation error first decreases (less underfitting), hits a minimum (sweet spot), then increases (overfitting).
+  </div>
+
+  <div class="demo-container">
+    <div class="demo-title accent-11">&#9658; Interactive: The Bias-Variance Tradeoff Curve</div>
+    <p style="font-size:0.9rem; color:var(--text-light); margin-bottom:1rem;">Hover over the curve to explore how training and validation error change with model complexity.</p>
+    <canvas id="ucurveCanvas" width="560" height="360"></canvas>
+    <div class="demo-info" id="ucurveInfo"></div>
+  </div>
+
+  <div class="quiz-container" id="quiz-underfitting-overfitting"></div>
+</section>
+
+<!-- ==================== SECTION 12: CROSS VALIDATION ==================== -->
+<section id="cross-validation">
+  <div class="section-header">
+    <div class="section-number bg-accent-12">12</div>
+    <h2>Cross Validation</h2>
+  </div>
+
+  <p>A single train/validation split can be misleading — you might get lucky (or unlucky) with which data ends up in each set. <strong>K-Fold Cross Validation</strong> solves this by:</p>
+  <ol>
+    <li>Splitting the data into <strong>k</strong> equal parts (folds)</li>
+    <li>Training <strong>k</strong> separate models, each time using a different fold as the validation set and the remaining k-1 folds for training</li>
+    <li>Averaging the k validation scores to get a more reliable estimate</li>
+  </ol>
+
+  <div class="highlight">
+    <strong>Why it matters:</strong> Cross validation gives you a robust estimate of how well your model generalizes, using all of your data for both training and validation. It reduces the <em>variance</em> of your performance estimate.
+  </div>
+
+  <div class="demo-container">
+    <div class="demo-title accent-12">&#9658; Interactive: K-Fold Cross Validation</div>
+    <p style="font-size:0.9rem; color:var(--text-light); margin-bottom:1rem;">Each row is one iteration. The orange block is the validation fold; blue blocks are training folds. Change k to see how the splits change.</p>
+    <div id="cvContainer"></div>
+    <div class="demo-controls">
+      <label>k = <input type="range" id="sliderK" min="3" max="10" step="1" value="5"> <span class="value" id="valK">5</span></label>
+    </div>
+    <div class="cv-legend">
+      <span><span class="swatch" style="background:var(--accent-1);opacity:0.7"></span> Training</span>
+      <span><span class="swatch" style="background:var(--accent-11)"></span> Validation</span>
+    </div>
+    <div class="demo-info" id="cvInfo">5-Fold CV: each data point is used for validation exactly once</div>
+  </div>
+
+  <div class="quiz-container" id="quiz-cross-validation"></div>
+</section>
+
+<!-- ==================== SECTION 13: BAYES ERROR ==================== -->
+<section id="bayes-error">
+  <div class="section-header">
+    <div class="section-number bg-accent-13">13</div>
+    <h2>Bayes Error</h2>
+  </div>
+
+  <p>The <strong>Bayes error rate</strong> is the lowest possible error rate achievable by <em>any</em> classifier, no matter how powerful. It represents the <strong>irreducible error</strong> — the noise inherent in the data itself.</p>
+
+  <h3>Why Does Irreducible Error Exist?</h3>
+  <p>Real-world data is noisy. Two identical-looking inputs might have different true labels (e.g., two very similar X-ray images, one with a tumor and one without). No model, no matter how complex, can distinguish these cases perfectly. This ambiguity <em>is</em> the Bayes error.</p>
+
+  <h3>Error Decomposition</h3>
+  <p>The total expected error of any model can be decomposed into three parts:</p>
+
+  <div class="highlight">
+    <strong>Total Error = Bias&sup2; + Variance + Bayes Error (irreducible noise)</strong><br><br>
+    <strong>Bias&sup2;</strong> — error from wrong assumptions (model too simple)<br>
+    <strong>Variance</strong> — error from sensitivity to training data (model too complex)<br>
+    <strong>Bayes Error</strong> — error that <em>no model can eliminate</em> (noise in the data)
+  </div>
+
+  <div class="demo-container">
+    <div class="demo-title accent-13">&#9658; Interactive: Error Decomposition</div>
+    <p style="font-size:0.9rem; color:var(--text-light); margin-bottom:1rem;">Move the slider to see how bias, variance, and irreducible error combine as model complexity changes. The Bayes error is the floor that no model can go below.</p>
+    <canvas id="bayesCanvas" width="560" height="360"></canvas>
+    <div class="demo-controls">
+      <label>Model complexity: <input type="range" id="sliderBayes" min="1" max="20" step="1" value="1"> <span class="value" id="valBayes">1</span></label>
+    </div>
+    <div style="margin-top:0.75rem;">
+      <div class="decomp-bar" id="decompBar">
+        <div id="decompBias" style="background:var(--accent-8)">Bias&sup2;</div>
+        <div id="decompVariance" style="background:var(--accent-9)">Variance</div>
+        <div id="decompNoise" style="background:var(--accent-13)">Bayes Error</div>
+      </div>
+    </div>
+    <div class="demo-info" id="bayesInfo"></div>
+  </div>
+
+  <div class="quiz-container" id="quiz-bayes-error"></div>
+</section>
+
+</main>
+
+<script>
+// ============================================================
+//  QUIZ SYSTEM
+// ============================================================
+const quizData = {
+  'learning': {
+    title: 'Test Your Understanding — Learning',
+    questions: [
+      {
+        text: 'What is a "model" in machine learning?',
+        options: [
+          'A physical replica of the data',
+          'A mathematical function that maps inputs to outputs',
+          'A database that stores all training examples',
+          'A visualization of data patterns'
+        ],
+        correct: 1,
+        explanation: 'A model is a mathematical function with adjustable parameters that transforms inputs into outputs.'
+      },
+      {
+        text: 'In the equation y = wx + b, what does "learning" mean?',
+        options: [
+          'Memorizing all the data points',
+          'Adding more data to the dataset',
+          'Finding values of w and b that best fit the data',
+          'Changing the equation to a more complex form'
+        ],
+        correct: 2,
+        explanation: 'Learning is the process of finding the parameter values (w and b) that minimize the difference between the model\'s predictions and the actual data.'
+      }
+    ]
+  },
+  'supervised': {
+    title: 'Test Your Understanding — Supervised Learning',
+    questions: [
+      {
+        text: 'What distinguishes supervised learning from other types?',
+        options: [
+          'It uses the largest datasets',
+          'It requires labeled training data',
+          'It always achieves the highest accuracy',
+          'It doesn\'t need a model'
+        ],
+        correct: 1,
+        explanation: 'The defining feature of supervised learning is that the training data comes with labels (the correct answers), which "supervise" the learning process.'
+      },
+      {
+        text: 'Which of these is a supervised learning task?',
+        options: [
+          'Grouping customers by purchasing behavior',
+          'Classifying emails as spam or not spam',
+          'Finding unusual patterns in network traffic without examples',
+          'Generating new images from random noise'
+        ],
+        correct: 1,
+        explanation: 'Spam classification uses labeled examples (emails marked as spam/not spam) to train a model — classic supervised learning.'
+      }
+    ]
+  },
+  'unsupervised': {
+    title: 'Test Your Understanding — Unsupervised Learning',
+    questions: [
+      {
+        text: 'What is the key characteristic of unsupervised learning?',
+        options: [
+          'It uses reinforcement signals',
+          'It works with data that has no labels',
+          'It always performs clustering',
+          'It requires human feedback during training'
+        ],
+        correct: 1,
+        explanation: 'Unsupervised learning works with unlabeled data, discovering hidden patterns and structures on its own.'
+      },
+      {
+        text: 'Which is an example of unsupervised learning?',
+        options: [
+          'Predicting house prices from features',
+          'Customer segmentation based on purchasing behavior',
+          'Image classification with labeled photos',
+          'A robot learning to walk via trial and error'
+        ],
+        correct: 1,
+        explanation: 'Customer segmentation groups customers based on behavior patterns without predefined labels — a classic unsupervised task.'
+      }
+    ]
+  },
+  'self-supervised': {
+    title: 'Test Your Understanding — Self-Supervised Learning',
+    questions: [
+      {
+        text: 'How does self-supervised learning create its training signals?',
+        options: [
+          'From human annotators',
+          'From reward functions in an environment',
+          'From the structure of the data itself',
+          'From random noise'
+        ],
+        correct: 2,
+        explanation: 'Self-supervised learning generates labels automatically from the data — e.g., masking a word and predicting it, or predicting the next frame in a video.'
+      },
+      {
+        text: 'Which is an example of a self-supervised learning task?',
+        options: [
+          'Classifying images using human-provided labels',
+          'Predicting the next word in a sentence',
+          'Clustering documents by topic',
+          'Training a robot to balance'
+        ],
+        correct: 1,
+        explanation: 'Next-word prediction creates labels from the text itself (the next word IS the label) — no human annotation needed.'
+      }
+    ]
+  },
+  'reinforcement': {
+    title: 'Test Your Understanding — Reinforcement Learning',
+    questions: [
+      {
+        text: 'What drives learning in reinforcement learning?',
+        options: [
+          'Labeled examples from a dataset',
+          'Reward signals from the environment',
+          'Clustering of data points',
+          'Predictions of masked inputs'
+        ],
+        correct: 1,
+        explanation: 'In RL, the agent learns by receiving rewards (or penalties) from the environment based on the actions it takes.'
+      },
+      {
+        text: 'Which scenario best represents reinforcement learning?',
+        options: [
+          'Sorting emails into folders based on past labeled examples',
+          'A game-playing AI that improves by playing thousands of matches',
+          'Grouping similar news articles into topics',
+          'Predicting missing words in a sentence'
+        ],
+        correct: 1,
+        explanation: 'A game-playing AI learns through trial and error, receiving rewards for winning and penalties for losing — the essence of RL.'
+      }
+    ]
+  },
+  'deep-learning': {
+    title: 'Test Your Understanding — Deep Learning',
+    questions: [
+      {
+        text: 'What makes a neural network "deep"?',
+        options: [
+          'It uses a very large dataset',
+          'It has many hidden layers between input and output',
+          'It takes a long time to train',
+          'It can only solve complex problems'
+        ],
+        correct: 1,
+        explanation: '"Deep" simply refers to the depth of the network — the number of hidden layers stacked between input and output.'
+      },
+      {
+        text: 'Why are deeper networks generally more powerful?',
+        options: [
+          'They always use more training data',
+          'They can learn increasingly abstract and complex representations',
+          'They are always more accurate than shallow networks',
+          'They train faster than shallow networks'
+        ],
+        correct: 1,
+        explanation: 'Each layer builds on the previous one, learning increasingly abstract features — from edges to shapes to objects to concepts.'
+      }
+    ]
+  },
+  'model-complexity': {
+    title: 'Test Your Understanding — Model Complexity',
+    questions: [
+      {
+        text: 'Which of the following increases model complexity?',
+        options: [
+          'Removing hidden layers from a neural network',
+          'Using a lower-degree polynomial',
+          'Adding more parameters to the model',
+          'Reducing the size of the training set'
+        ],
+        correct: 2,
+        explanation: 'More parameters give the model more flexibility to represent complex patterns, increasing its complexity.'
+      },
+      {
+        text: 'A degree-1 polynomial (y = wx + b) has 2 parameters. A degree-3 polynomial has 4 parameters. What does this imply?',
+        options: [
+          'The degree-3 polynomial will always be more accurate',
+          'The degree-3 polynomial can represent more complex relationships',
+          'The degree-1 polynomial will always overfit',
+          'The degree-3 polynomial trains faster'
+        ],
+        correct: 1,
+        explanation: 'More parameters mean the model can represent more complex curves. Whether this is good depends on the true complexity of the data.'
+      }
+    ]
+  },
+  'bias': {
+    title: 'Test Your Understanding — Bias',
+    questions: [
+      {
+        text: 'A model with high bias will:',
+        options: [
+          'Fit the training data perfectly',
+          'Perform differently each time it is retrained',
+          'Systematically miss the true pattern, even on training data',
+          'Always have more parameters than needed'
+        ],
+        correct: 2,
+        explanation: 'High bias means the model is too simple to capture the true relationship — it consistently underpredicts or overpredicts in systematic ways.'
+      },
+      {
+        text: 'How can you reduce bias?',
+        options: [
+          'Use a simpler model',
+          'Increase model complexity (more layers, parameters, or polynomial degree)',
+          'Collect less training data',
+          'Increase the validation set size'
+        ],
+        correct: 1,
+        explanation: 'A more complex model can capture more intricate patterns, reducing the systematic error (bias). But be careful — too much complexity introduces variance.'
+      }
+    ]
+  },
+  'variance': {
+    title: 'Test Your Understanding — Variance',
+    questions: [
+      {
+        text: 'What does high variance in a model mean?',
+        options: [
+          'The model consistently underfits the data',
+          'The model\'s predictions change significantly with different training sets',
+          'The model has too few parameters',
+          'The model ignores the training data'
+        ],
+        correct: 1,
+        explanation: 'High variance means the model is very sensitive to which specific data it was trained on — different samples produce very different models.'
+      },
+      {
+        text: 'If you train the same model architecture on 5 different random samples and get 5 nearly identical curves, what does that indicate?',
+        options: [
+          'High bias, high variance',
+          'Low bias, high variance',
+          'Low variance',
+          'The model is overfitting'
+        ],
+        correct: 2,
+        explanation: 'Consistent predictions across different training sets indicate low variance — the model isn\'t sensitive to the specific data it sees.'
+      }
+    ]
+  },
+  'train-val-curves': {
+    title: 'Test Your Understanding — Training & Validation Curves',
+    questions: [
+      {
+        text: 'During training, the training accuracy is 98% but the validation accuracy is 72%. What is happening?',
+        options: [
+          'The model is underfitting',
+          'The model is overfitting',
+          'The model has found the sweet spot',
+          'The training data is too small'
+        ],
+        correct: 1,
+        explanation: 'A large gap between training accuracy (high) and validation accuracy (low) is the hallmark of overfitting — the model memorized the training data but doesn\'t generalize.'
+      },
+      {
+        text: 'Both training and validation accuracy are stuck around 65%. What should you try?',
+        options: [
+          'Train for fewer epochs',
+          'Use a simpler model',
+          'Increase model complexity or use a better architecture',
+          'Reduce the training data'
+        ],
+        correct: 2,
+        explanation: 'When both training and validation accuracy are low, the model is underfitting. Increasing complexity gives it more capacity to learn the pattern.'
+      }
+    ]
+  },
+  'underfitting-overfitting': {
+    title: 'Test Your Understanding — Underfitting & Overfitting',
+    questions: [
+      {
+        text: 'On the U-curve, where is the optimal model complexity?',
+        options: [
+          'Where training error is zero',
+          'Where validation error is minimized',
+          'Where the model has the most parameters',
+          'Where training and validation errors are both highest'
+        ],
+        correct: 1,
+        explanation: 'The sweet spot is where the validation error reaches its minimum — the model is complex enough to learn the pattern but not so complex that it overfits.'
+      },
+      {
+        text: 'As model complexity increases beyond the sweet spot, what happens?',
+        options: [
+          'Both training and validation error decrease',
+          'Training error increases, validation error decreases',
+          'Training error continues to decrease, but validation error increases',
+          'Both training and validation error increase'
+        ],
+        correct: 2,
+        explanation: 'Past the sweet spot, the model keeps fitting the training data better (lower training error) but starts memorizing noise, causing validation error to rise.'
+      }
+    ]
+  },
+  'cross-validation': {
+    title: 'Test Your Understanding — Cross Validation',
+    questions: [
+      {
+        text: 'In 5-fold cross validation, how many times is each data point used for validation?',
+        options: [
+          '0 times',
+          'Exactly 1 time',
+          'Exactly 5 times',
+          'It depends on the random split'
+        ],
+        correct: 1,
+        explanation: 'In k-fold CV, each data point appears in exactly one fold, so it is used for validation exactly once (and for training k-1 times).'
+      },
+      {
+        text: 'Why is cross validation preferred over a single train/validation split?',
+        options: [
+          'It trains the model faster',
+          'It uses less data overall',
+          'It gives a more reliable estimate of generalization by reducing estimate variance',
+          'It always improves model accuracy'
+        ],
+        correct: 2,
+        explanation: 'A single split can give an optimistic or pessimistic estimate depending on which data ends up where. Averaging over k splits gives a more robust and reliable estimate.'
+      }
+    ]
+  },
+  'bayes-error': {
+    title: 'Test Your Understanding — Bayes Error',
+    questions: [
+      {
+        text: 'What is the Bayes error rate?',
+        options: [
+          'The error of the simplest possible model',
+          'The error of a model trained on all available data',
+          'The lowest possible error achievable by any classifier — the irreducible noise',
+          'The average error across all model complexities'
+        ],
+        correct: 2,
+        explanation: 'Bayes error is the theoretical minimum error rate — it represents the inherent noise and ambiguity in the data that no model can eliminate.'
+      },
+      {
+        text: 'Total Error = Bias² + Variance + Bayes Error. If you keep increasing model complexity, can you reach zero total error?',
+        options: [
+          'Yes, if the model is complex enough',
+          'No, because Bayes error (irreducible noise) always remains',
+          'Yes, if you have enough training data',
+          'No, because bias always increases'
+        ],
+        correct: 1,
+        explanation: 'Even a perfect model with zero bias and zero variance cannot go below the Bayes error — the noise in the data is irreducible.'
+      }
+    ]
+  }
+};
+
+let answeredQuestions = new Set();
+const totalQuestions = Object.values(quizData).reduce((s, d) => s + d.questions.length, 0);
+
+function updateProgress() {
+  const pct = (answeredQuestions.size / totalQuestions) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${answeredQuestions.size} / ${totalQuestions} questions`;
+}
+
+function buildQuizzes() {
+  for (const [sectionId, data] of Object.entries(quizData)) {
+    const container = document.getElementById('quiz-' + sectionId);
+    container.innerHTML = `<div class="quiz-header">${data.title}</div>`;
+    data.questions.forEach((q, qi) => {
+      const qId = `${sectionId}-${qi}`;
+      let html = `<div class="quiz-question" data-qid="${qId}">`;
+      html += `<p class="q-text">${qi + 1}. ${q.text}</p>`;
+      html += `<div class="quiz-options">`;
+      const letters = ['A', 'B', 'C', 'D'];
+      q.options.forEach((opt, oi) => {
+        html += `<div class="quiz-option" data-qid="${qId}" data-oi="${oi}" onclick="selectAnswer(this, ${q.correct}, '${qId}')">
+          <span class="marker">${letters[oi]}</span>
+          <span>${opt}</span>
+        </div>`;
+      });
+      html += `</div>`;
+      html += `<div class="quiz-feedback" id="fb-${qId}"></div>`;
+      html += `</div>`;
+      container.innerHTML += html;
+    });
+  }
+}
+
+function selectAnswer(el, correctIdx, qId) {
+  if (answeredQuestions.has(qId)) return;
+  answeredQuestions.add(qId);
+
+  const options = document.querySelectorAll(`.quiz-option[data-qid="${qId}"]`);
+  const selected = parseInt(el.dataset.oi);
+  const isCorrect = selected === correctIdx;
+
+  options.forEach((opt, i) => {
+    opt.classList.add('disabled');
+    if (i === correctIdx) opt.classList.add('correct');
+    if (i === selected && !isCorrect) opt.classList.add('incorrect');
+  });
+
+  const sectionId = qId.split('-')[0];
+  // handle section ids with hyphens
+  const parts = qId.split('-');
+  const questionIdx = parseInt(parts[parts.length - 1]);
+  const sectionKey = parts.slice(0, -1).join('-');
+  const explanation = quizData[sectionKey].questions[questionIdx].explanation;
+
+  const fb = document.getElementById('fb-' + qId);
+  fb.className = `quiz-feedback show ${isCorrect ? 'correct' : 'incorrect'}`;
+  fb.textContent = isCorrect ? `Correct! ${explanation}` : `Not quite. ${explanation}`;
+
+  updateProgress();
+}
+
+// ============================================================
+//  DEMO 1: LINEAR MODEL y = wx + b  +  ERROR SURFACE
+// ============================================================
+(function() {
+  // --- Line fit canvas ---
+  const canvas = document.getElementById('linearCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = 50;
+
+  // --- Error surface canvas ---
+  const esCanvas = document.getElementById('errorSurfaceCanvas');
+  const esCtx = esCanvas.getContext('2d');
+  const EW = esCanvas.width, EH = esCanvas.height;
+  const esPad = 42;
+
+  // Generate data: y ≈ 2x + 1 with noise
+  const trueW = 2, trueB = 1;
+  const dataPoints = [];
+  for (let i = 0; i < 25; i++) {
+    const x = (Math.random() * 8) - 4;
+    const y = trueW * x + trueB + (Math.random() - 0.5) * 3;
+    dataPoints.push({ x, y });
+  }
+
+  const xMin = -5, xMax = 5, yMin = -12, yMax = 12;
+  // Parameter ranges for error surface
+  const wMin = -5, wMax = 5, bMin = -10, bMax = 10;
+
+  function toCanvas(x, y) {
+    return {
+      cx: pad + (x - xMin) / (xMax - xMin) * (W - 2 * pad),
+      cy: H - pad - (y - yMin) / (yMax - yMin) * (H - 2 * pad)
+    };
+  }
+
+  function getMSE(w, b) {
+    return dataPoints.reduce((s, p) => s + (p.y - (w * p.x + b)) ** 2, 0) / dataPoints.length;
+  }
+
+  // --- Pre-compute error surface heatmap ---
+  const esResW = EW - 2 * esPad;
+  const esResH = EH - 2 * esPad;
+  const mseGrid = [];
+  let mseMax = 0;
+  for (let py = 0; py < esResH; py++) {
+    const row = [];
+    for (let px = 0; px < esResW; px++) {
+      const gw = wMin + (px / (esResW - 1)) * (wMax - wMin);
+      const gb = bMax - (py / (esResH - 1)) * (bMax - bMin); // y-axis inverted: top = high b
+      const mse = getMSE(gw, gb);
+      row.push(mse);
+      if (mse > mseMax) mseMax = mse;
+    }
+    mseGrid.push(row);
+  }
+
+  // Color map: viridis-inspired (dark purple → blue → teal → green → yellow)
+  function mseToColor(mse) {
+    // Use log scale for better visual contrast
+    const t = Math.log(1 + mse) / Math.log(1 + mseMax);
+    // 5-stop gradient
+    const stops = [
+      { t: 0.0, r: 15, g: 30, b: 80 },    // dark navy (low error)
+      { t: 0.15, r: 40, g: 70, b: 150 },   // blue
+      { t: 0.35, r: 30, g: 140, b: 140 },  // teal
+      { t: 0.6, r: 60, g: 180, b: 75 },    // green
+      { t: 0.8, r: 220, g: 200, b: 40 },   // yellow
+      { t: 1.0, r: 240, g: 80, b: 30 },    // orange-red (high error)
+    ];
+    let i = 0;
+    while (i < stops.length - 2 && stops[i + 1].t < t) i++;
+    const s0 = stops[i], s1 = stops[i + 1];
+    const f = (t - s0.t) / (s1.t - s0.t);
+    return {
+      r: Math.round(s0.r + f * (s1.r - s0.r)),
+      g: Math.round(s0.g + f * (s1.g - s0.g)),
+      b: Math.round(s0.b + f * (s1.b - s0.b)),
+    };
+  }
+
+  // Render heatmap to an off-screen ImageData once
+  const heatmapData = esCtx.createImageData(esResW, esResH);
+  for (let py = 0; py < esResH; py++) {
+    for (let px = 0; px < esResW; px++) {
+      const c = mseToColor(mseGrid[py][px]);
+      const idx = (py * esResW + px) * 4;
+      heatmapData.data[idx] = c.r;
+      heatmapData.data[idx + 1] = c.g;
+      heatmapData.data[idx + 2] = c.b;
+      heatmapData.data[idx + 3] = 255;
+    }
+  }
+  // Create off-screen canvas for heatmap so we can draw it quickly
+  const heatmapCanvas = document.createElement('canvas');
+  heatmapCanvas.width = esResW;
+  heatmapCanvas.height = esResH;
+  heatmapCanvas.getContext('2d').putImageData(heatmapData, 0, 0);
+
+  // Gradient descent trail
+  let trail = [];
+
+  // Map (w, b) → pixel position on error surface canvas
+  function paramToES(w, b) {
+    return {
+      ex: esPad + ((w - wMin) / (wMax - wMin)) * (esResW - 1),
+      ey: esPad + ((bMax - b) / (bMax - bMin)) * (esResH - 1)
+    };
+  }
+
+  function drawErrorSurface(w, b) {
+    esCtx.clearRect(0, 0, EW, EH);
+
+    // Draw heatmap
+    esCtx.drawImage(heatmapCanvas, esPad, esPad);
+
+    // Contour lines (approximate by drawing iso-lines at select MSE values)
+    const contourLevels = [2, 5, 10, 20, 40, 80, 150];
+    esCtx.strokeStyle = 'rgba(255,255,255,0.2)';
+    esCtx.lineWidth = 0.75;
+    contourLevels.forEach(level => {
+      esCtx.beginPath();
+      let started = false;
+      // Scan rows for this contour
+      for (let py = 1; py < esResH - 1; py++) {
+        for (let px = 1; px < esResW - 1; px++) {
+          const v = mseGrid[py][px];
+          const vRight = mseGrid[py][px + 1];
+          const vDown = mseGrid[py + 1][px];
+          if ((v <= level && vRight > level) || (v > level && vRight <= level) ||
+              (v <= level && vDown > level) || (v > level && vDown <= level)) {
+            const cx = esPad + px;
+            const cy = esPad + py;
+            esCtx.moveTo(cx, cy);
+            esCtx.lineTo(cx + 0.5, cy + 0.5);
+          }
+        }
+      }
+      esCtx.stroke();
+    });
+
+    // Axis labels
+    esCtx.fillStyle = '#999';
+    esCtx.font = '11px system-ui';
+    esCtx.textAlign = 'center';
+    esCtx.textBaseline = 'top';
+    // w axis (bottom)
+    esCtx.fillText('w', esPad + esResW / 2, esPad + esResH + 6);
+    for (let v = -4; v <= 4; v += 2) {
+      const x = esPad + ((v - wMin) / (wMax - wMin)) * (esResW - 1);
+      esCtx.fillText(v.toString(), x, esPad + esResH + 6);
+      esCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+      esCtx.beginPath(); esCtx.moveTo(x, esPad); esCtx.lineTo(x, esPad + esResH); esCtx.stroke();
+    }
+    // b axis (left)
+    esCtx.textAlign = 'right';
+    esCtx.textBaseline = 'middle';
+    esCtx.fillText('b', esPad - 8, esPad + esResH / 2 - 14);
+    for (let v = -8; v <= 8; v += 4) {
+      const y = esPad + ((bMax - v) / (bMax - bMin)) * (esResH - 1);
+      esCtx.fillText(v.toString(), esPad - 6, y);
+      esCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+      esCtx.beginPath(); esCtx.moveTo(esPad, y); esCtx.lineTo(esPad + esResW, y); esCtx.stroke();
+    }
+
+    // Gradient descent trail
+    if (trail.length > 1) {
+      esCtx.strokeStyle = 'rgba(255,255,255,0.6)';
+      esCtx.lineWidth = 1.5;
+      esCtx.setLineDash([3, 3]);
+      esCtx.beginPath();
+      trail.forEach((pt, i) => {
+        const { ex, ey } = paramToES(pt.w, pt.b);
+        if (i === 0) esCtx.moveTo(ex, ey); else esCtx.lineTo(ex, ey);
+      });
+      esCtx.stroke();
+      esCtx.setLineDash([]);
+
+      // Trail dots
+      trail.forEach((pt, i) => {
+        if (i % 3 === 0 || i === trail.length - 1) {
+          const { ex, ey } = paramToES(pt.w, pt.b);
+          esCtx.fillStyle = 'rgba(255,255,255,0.35)';
+          esCtx.beginPath(); esCtx.arc(ex, ey, 2, 0, Math.PI * 2); esCtx.fill();
+        }
+      });
+    }
+
+    // Optimal point marker
+    const { ex: optX, ey: optY } = paramToES(trueW, trueB);
+    esCtx.strokeStyle = 'rgba(255,255,255,0.5)';
+    esCtx.lineWidth = 1;
+    const starR = 6;
+    esCtx.beginPath();
+    esCtx.moveTo(optX - starR, optY); esCtx.lineTo(optX + starR, optY);
+    esCtx.moveTo(optX, optY - starR); esCtx.lineTo(optX, optY + starR);
+    esCtx.stroke();
+
+    // Current position dot
+    const { ex, ey } = paramToES(w, b);
+    // Glow
+    esCtx.fillStyle = 'rgba(255,255,255,0.2)';
+    esCtx.beginPath(); esCtx.arc(ex, ey, 12, 0, Math.PI * 2); esCtx.fill();
+    // Dot
+    esCtx.fillStyle = '#fff';
+    esCtx.beginPath(); esCtx.arc(ex, ey, 6, 0, Math.PI * 2); esCtx.fill();
+    esCtx.strokeStyle = '#1a1a2e';
+    esCtx.lineWidth = 2;
+    esCtx.stroke();
+
+    // Color bar legend (right side)
+    const barX = EW - 16, barW = 10, barTop = esPad, barH = esResH;
+    for (let py = 0; py < barH; py++) {
+      const t = py / barH;
+      const mseVal = Math.exp(t * Math.log(1 + mseMax)) - 1;
+      const c = mseToColor(mseVal);
+      esCtx.fillStyle = `rgb(${c.r},${c.g},${c.b})`;
+      esCtx.fillRect(barX, barTop + py, barW, 1);
+    }
+    esCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+    esCtx.strokeRect(barX, barTop, barW, barH);
+    esCtx.fillStyle = '#999';
+    esCtx.font = '9px system-ui';
+    esCtx.textAlign = 'left';
+    esCtx.textBaseline = 'top';
+    esCtx.fillText('low', barX - 2, barTop - 12);
+    esCtx.textBaseline = 'bottom';
+    esCtx.fillText('high', barX - 4, barTop + barH + 12);
+  }
+
+  function draw() {
+    const w = parseFloat(document.getElementById('sliderW').value);
+    const b = parseFloat(document.getElementById('sliderB').value);
+    document.getElementById('valW').textContent = w.toFixed(1);
+    document.getElementById('valB').textContent = b.toFixed(1);
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid
+    ctx.strokeStyle = '#f0f0f0';
+    ctx.lineWidth = 1;
+    for (let x = Math.ceil(xMin); x <= xMax; x++) {
+      const { cx } = toCanvas(x, 0);
+      ctx.beginPath(); ctx.moveTo(cx, pad); ctx.lineTo(cx, H - pad); ctx.stroke();
+    }
+    for (let y = Math.ceil(yMin); y <= yMax; y += 2) {
+      const { cy } = toCanvas(0, y);
+      ctx.beginPath(); ctx.moveTo(pad, cy); ctx.lineTo(W - pad, cy); ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = '#ccc';
+    ctx.lineWidth = 1.5;
+    const { cx: ax0, cy: ay0 } = toCanvas(0, yMin);
+    const { cx: ax1, cy: ay1 } = toCanvas(0, yMax);
+    ctx.beginPath(); ctx.moveTo(ax0, ay0); ctx.lineTo(ax1, ay1); ctx.stroke();
+    const { cx: bx0, cy: by0 } = toCanvas(xMin, 0);
+    const { cx: bx1, cy: by1 } = toCanvas(xMax, 0);
+    ctx.beginPath(); ctx.moveTo(bx0, by0); ctx.lineTo(bx1, by1); ctx.stroke();
+
+    // Error lines
+    ctx.strokeStyle = 'rgba(239,68,68,0.2)';
+    ctx.lineWidth = 1;
+    dataPoints.forEach(p => {
+      const pred = w * p.x + b;
+      const { cx, cy } = toCanvas(p.x, p.y);
+      const { cy: pcy } = toCanvas(p.x, pred);
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, pcy); ctx.stroke();
+    });
+
+    // Model line
+    const ly1 = w * xMin + b, ly2 = w * xMax + b;
+    const { cx: lx1, cy: lcy1 } = toCanvas(xMin, ly1);
+    const { cx: lx2, cy: lcy2 } = toCanvas(xMax, ly2);
+    ctx.strokeStyle = '#3B82F6';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(lx1, lcy1); ctx.lineTo(lx2, lcy2); ctx.stroke();
+
+    // Data points
+    dataPoints.forEach(p => {
+      const { cx, cy } = toCanvas(p.x, p.y);
+      ctx.fillStyle = '#1a1a2e';
+      ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    });
+
+    // Axis labels
+    ctx.fillStyle = '#999';
+    ctx.font = '12px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('x', W - pad + 20, by0 + 4);
+    ctx.fillText('y', ax0 + 2, pad - 12);
+
+    const mse = getMSE(w, b);
+    document.getElementById('linearInfo').textContent = `MSE = ${mse.toFixed(2)}`;
+
+    // Update error surface
+    drawErrorSurface(w, b);
+  }
+
+  document.getElementById('sliderW').addEventListener('input', () => { trail = []; draw(); });
+  document.getElementById('sliderB').addEventListener('input', () => { trail = []; draw(); });
+
+  // Auto-fit (gradient descent animation)
+  let animating = false;
+  document.getElementById('btnAutoFit').addEventListener('click', function() {
+    if (animating) return;
+    animating = true;
+    this.disabled = true;
+    let w = parseFloat(document.getElementById('sliderW').value);
+    let b = parseFloat(document.getElementById('sliderB').value);
+    const lr = 0.01;
+    trail = [{ w, b }];
+
+    function step() {
+      let dw = 0, db = 0;
+      dataPoints.forEach(p => {
+        const err = (w * p.x + b) - p.y;
+        dw += err * p.x;
+        db += err;
+      });
+      dw = (2 * dw) / dataPoints.length;
+      db = (2 * db) / dataPoints.length;
+      w -= lr * dw;
+      b -= lr * db;
+      w = Math.max(-5, Math.min(5, w));
+      b = Math.max(-10, Math.min(10, b));
+
+      trail.push({ w, b });
+
+      document.getElementById('sliderW').value = w;
+      document.getElementById('sliderB').value = b;
+      draw();
+
+      if (Math.abs(dw) > 0.01 || Math.abs(db) > 0.01) {
+        requestAnimationFrame(step);
+      } else {
+        animating = false;
+        document.getElementById('btnAutoFit').disabled = false;
+      }
+    }
+    requestAnimationFrame(step);
+  });
+
+  document.getElementById('btnResetLine').addEventListener('click', () => {
+    document.getElementById('sliderW').value = 0;
+    document.getElementById('sliderB').value = 0;
+    trail = [];
+    draw();
+  });
+
+  draw();
+})();
+
+
+
+// ============================================================
+//  DEMO 4: SELF-SUPERVISED — Masked Language
+// ============================================================
+(function() {
+  const sentences = [
+    { full: 'The cat sat on the mat', masked: 'The cat sat on the ____', answer: 'mat', hint: 'Where cats like to sit' },
+    { full: 'She opened the door and walked into the room', masked: 'She opened the ____ and walked into the room', answer: 'door', hint: 'You open this to enter' },
+    { full: 'The sun rises in the east and sets in the west', masked: 'The sun rises in the east and sets in the ____', answer: 'west', hint: 'Opposite of east' },
+    { full: 'He poured a glass of cold water', masked: 'He poured a glass of cold ____', answer: 'water', hint: 'A common drink' },
+    { full: 'The students studied hard for the exam', masked: 'The students studied hard for the ____', answer: 'exam', hint: 'Why students study' },
+    { full: 'Birds fly south for the winter', masked: 'Birds fly south for the ____', answer: 'winter', hint: 'The cold season' },
+  ];
+
+  let currentIdx = 0;
+
+  function showSentence() {
+    const s = sentences[currentIdx];
+    document.getElementById('sentenceDisplay').innerHTML = s.masked.replace('____', '<span class="mask">[MASK]</span>');
+    document.getElementById('guessInput').value = '';
+    document.getElementById('predictionResult').className = 'prediction-result';
+    document.getElementById('guessInput').placeholder = 'Type your guess...';
+  }
+
+  document.getElementById('btnGuess').addEventListener('click', () => {
+    const guess = document.getElementById('guessInput').value.trim().toLowerCase();
+    if (!guess) return;
+    const s = sentences[currentIdx];
+    const result = document.getElementById('predictionResult');
+    const match = guess === s.answer.toLowerCase();
+
+    result.className = 'prediction-result show';
+    result.style.background = match ? '#ecfdf5' : '#fef9ec';
+    result.style.color = match ? '#065f46' : '#92400e';
+    result.innerHTML = match
+      ? `<strong>You and the model agree!</strong> The answer is "<strong>${s.answer}</strong>". The model learned this pattern from millions of sentences — no human labeled this.`
+      : `<strong>Your guess:</strong> "${guess}" — <strong>Model's prediction:</strong> "${s.answer}"<br>Both are attempts to predict from context. The model has seen millions of sentences like this, building its understanding of language — all without human labels!`;
+  });
+
+  document.getElementById('btnNextSentence').addEventListener('click', () => {
+    currentIdx = (currentIdx + 1) % sentences.length;
+    showSentence();
+  });
+
+  document.getElementById('guessInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('btnGuess').click();
+  });
+
+  showSentence();
+})();
+
+
+// ============================================================
+//  DEMO 6: NETWORK DEPTH VISUALIZER
+// ============================================================
+(function() {
+  const canvas = document.getElementById('networkCanvas');
+  const ctx = canvas.getContext('2d');
+  const bCanvas = document.getElementById('boundaryCanvas');
+  const bCtx = bCanvas.getContext('2d');
+
+  let hiddenLayers = 1;
+  const inputNeurons = 3, outputNeurons = 2, hiddenNeurons = 4;
+
+  function calcParams() {
+    if (hiddenLayers === 0) return inputNeurons * outputNeurons + outputNeurons;
+    let p = inputNeurons * hiddenNeurons + hiddenNeurons; // first hidden
+    p += (hiddenLayers - 1) * (hiddenNeurons * hiddenNeurons + hiddenNeurons); // middle hidden
+    p += hiddenNeurons * outputNeurons + outputNeurons; // output
+    return p;
+  }
+
+  function drawNetwork() {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    const layers = [inputNeurons];
+    for (let i = 0; i < hiddenLayers; i++) layers.push(hiddenNeurons);
+    layers.push(outputNeurons);
+
+    const layerX = [];
+    const totalLayers = layers.length;
+    const spacing = W / (totalLayers + 1);
+    for (let i = 0; i < totalLayers; i++) {
+      layerX.push(spacing * (i + 1));
+    }
+
+    // Compute neuron positions
+    const positions = [];
+    layers.forEach((n, li) => {
+      const layerPositions = [];
+      const totalH = (n - 1) * 40;
+      const startY = H / 2 - totalH / 2;
+      for (let ni = 0; ni < n; ni++) {
+        layerPositions.push({ x: layerX[li], y: startY + ni * 40 });
+      }
+      positions.push(layerPositions);
+    });
+
+    // Connections
+    for (let li = 0; li < positions.length - 1; li++) {
+      positions[li].forEach(from => {
+        positions[li + 1].forEach(to => {
+          ctx.strokeStyle = 'rgba(99,102,241,0.15)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(from.x, from.y);
+          ctx.lineTo(to.x, to.y);
+          ctx.stroke();
+        });
+      });
+    }
+
+    // Neurons
+    const layerColors = ['#3B82F6', ...Array(hiddenLayers).fill('#6366F1'), '#10B981'];
+    positions.forEach((layer, li) => {
+      layer.forEach(pos => {
+        ctx.fillStyle = layerColors[li] || '#6366F1';
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+    });
+
+    // Labels
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '11px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('Input', layerX[0], H - 10);
+    ctx.fillText('Output', layerX[totalLayers - 1], H - 10);
+    for (let i = 1; i < totalLayers - 1; i++) {
+      ctx.fillText(`Hidden ${i}`, layerX[i], H - 10);
+    }
+
+    document.getElementById('networkInfo').textContent =
+      `${hiddenLayers} hidden layer${hiddenLayers !== 1 ? 's' : ''} · ${calcParams()} parameters`;
+  }
+
+  function drawBoundary() {
+    const W = bCanvas.width, H = bCanvas.height;
+    bCtx.clearRect(0, 0, W, H);
+
+    // Draw a stylized decision boundary based on depth
+    const midY = H / 2;
+
+    // Background classes
+    bCtx.fillStyle = 'rgba(59,130,246,0.08)';
+    bCtx.fillRect(0, 0, W, H);
+
+    // Build boundary path
+    bCtx.beginPath();
+    bCtx.moveTo(0, midY);
+
+    if (hiddenLayers === 0) {
+      // Linear: straight line
+      bCtx.lineTo(W, midY - 20);
+    } else if (hiddenLayers === 1) {
+      // Slight curve
+      bCtx.bezierCurveTo(W * 0.3, midY - 30, W * 0.7, midY + 30, W, midY + 10);
+    } else if (hiddenLayers === 2) {
+      // S-curve
+      bCtx.bezierCurveTo(W * 0.15, midY - 50, W * 0.35, midY + 50, W * 0.5, midY);
+      bCtx.bezierCurveTo(W * 0.65, midY - 50, W * 0.85, midY + 40, W, midY - 10);
+    } else if (hiddenLayers === 3) {
+      // Complex curve
+      const amp = 45;
+      for (let x = 1; x <= W; x++) {
+        const t = x / W;
+        const y = midY + amp * Math.sin(t * Math.PI * 3) * (0.5 + 0.5 * Math.sin(t * Math.PI));
+        bCtx.lineTo(x, y);
+      }
+    } else {
+      // Very complex
+      const amp = 50;
+      for (let x = 1; x <= W; x++) {
+        const t = x / W;
+        const y = midY + amp * Math.sin(t * Math.PI * 4) * Math.cos(t * Math.PI * 1.5);
+        bCtx.lineTo(x, y);
+      }
+    }
+
+    // Fill top region
+    bCtx.lineTo(W, 0); bCtx.lineTo(0, 0); bCtx.closePath();
+    bCtx.fillStyle = 'rgba(99,102,241,0.12)';
+    bCtx.fill();
+
+    // Draw boundary line
+    bCtx.beginPath();
+    bCtx.moveTo(0, midY);
+    if (hiddenLayers === 0) {
+      bCtx.lineTo(W, midY - 20);
+    } else if (hiddenLayers === 1) {
+      bCtx.bezierCurveTo(W * 0.3, midY - 30, W * 0.7, midY + 30, W, midY + 10);
+    } else if (hiddenLayers === 2) {
+      bCtx.bezierCurveTo(W * 0.15, midY - 50, W * 0.35, midY + 50, W * 0.5, midY);
+      bCtx.bezierCurveTo(W * 0.65, midY - 50, W * 0.85, midY + 40, W, midY - 10);
+    } else if (hiddenLayers === 3) {
+      const amp = 45;
+      for (let x = 1; x <= W; x++) {
+        const t = x / W;
+        const y = midY + amp * Math.sin(t * Math.PI * 3) * (0.5 + 0.5 * Math.sin(t * Math.PI));
+        bCtx.lineTo(x, y);
+      }
+    } else {
+      const amp = 50;
+      for (let x = 1; x <= W; x++) {
+        const t = x / W;
+        const y = midY + amp * Math.sin(t * Math.PI * 4) * Math.cos(t * Math.PI * 1.5);
+        bCtx.lineTo(x, y);
+      }
+    }
+    bCtx.strokeStyle = '#6366F1';
+    bCtx.lineWidth = 2.5;
+    bCtx.stroke();
+
+    // Scatter points
+    const seed = 42;
+    function seededRandom(i) {
+      let x = Math.sin(seed + i) * 10000;
+      return x - Math.floor(x);
+    }
+
+    for (let i = 0; i < 40; i++) {
+      const px = seededRandom(i * 2) * W;
+      const py = seededRandom(i * 2 + 1) * H;
+      const isTop = py < midY;
+      bCtx.fillStyle = isTop ? 'rgba(99,102,241,0.6)' : 'rgba(239,68,68,0.6)';
+      bCtx.beginPath();
+      bCtx.arc(px, py, 4, 0, Math.PI * 2);
+      bCtx.fill();
+    }
+
+    // Label
+    const descriptions = [
+      'Linear boundary — can only separate data with a straight line',
+      '1 layer — can model simple curves',
+      '2 layers — can model S-curves and bends',
+      '3 layers — can model complex, wavy boundaries',
+      '4+ layers — can model highly intricate decision surfaces'
+    ];
+    const descIdx = Math.min(hiddenLayers, 4);
+    bCtx.fillStyle = '#64748b';
+    bCtx.font = '12px system-ui';
+    bCtx.textAlign = 'left';
+    bCtx.fillText(descriptions[descIdx], 10, H - 10);
+  }
+
+  document.getElementById('btnAddLayer').addEventListener('click', () => {
+    if (hiddenLayers < 5) { hiddenLayers++; drawNetwork(); drawBoundary(); }
+  });
+
+  document.getElementById('btnRemoveLayer').addEventListener('click', () => {
+    if (hiddenLayers > 0) { hiddenLayers--; drawNetwork(); drawBoundary(); }
+  });
+
+  drawNetwork();
+  drawBoundary();
+})();
+
+// ============================================================
+//  SHARED: Polynomial fitting utilities
+// ============================================================
+(function() {
+  // Seeded RNG for reproducible data
+  function mulberry32(a) {
+    return function() {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  // True function
+  function trueFunc(x) { return Math.sin(Math.PI * x / 3); }
+
+  // Generate data from true function + noise
+  function generateData(n, seed, xRange) {
+    const rng = mulberry32(seed);
+    const xMin = xRange[0], xMax = xRange[1];
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const x = xMin + rng() * (xMax - xMin);
+      const y = trueFunc(x) + (rng() - 0.5) * 0.6;
+      pts.push({ x, y });
+    }
+    return pts.sort((a, b) => a.x - b.x);
+  }
+
+  // Polynomial fit using normal equation with regularization
+  function polyFit(xData, yData, degree) {
+    const n = xData.length, m = degree + 1;
+    // Normalize x to [-1, 1]
+    const xMean = xData.reduce((s, x) => s + x, 0) / n;
+    const xStd = Math.sqrt(xData.reduce((s, x) => s + (x - xMean) ** 2, 0) / n) || 1;
+    const xNorm = xData.map(x => (x - xMean) / xStd);
+
+    const XtX = Array.from({ length: m }, () => new Array(m).fill(0));
+    const Xty = new Array(m).fill(0);
+
+    for (let i = 0; i < n; i++) {
+      const powers = [1];
+      for (let j = 1; j < m; j++) powers.push(powers[j - 1] * xNorm[i]);
+      for (let j = 0; j < m; j++) {
+        Xty[j] += powers[j] * yData[i];
+        for (let k = 0; k < m; k++) XtX[j][k] += powers[j] * powers[k];
+      }
+    }
+
+    // Ridge regularization
+    for (let i = 0; i < m; i++) XtX[i][i] += 1e-6;
+
+    // Gaussian elimination
+    const aug = XtX.map((row, i) => [...row, Xty[i]]);
+    for (let col = 0; col < m; col++) {
+      let maxRow = col;
+      for (let row = col + 1; row < m; row++)
+        if (Math.abs(aug[row][col]) > Math.abs(aug[maxRow][col])) maxRow = row;
+      [aug[col], aug[maxRow]] = [aug[maxRow], aug[col]];
+      const pivot = aug[col][col];
+      if (Math.abs(pivot) < 1e-12) continue;
+      for (let j = col; j <= m; j++) aug[col][j] /= pivot;
+      for (let row = 0; row < m; row++) {
+        if (row === col) continue;
+        const f = aug[row][col];
+        for (let j = col; j <= m; j++) aug[row][j] -= f * aug[col][j];
+      }
+    }
+
+    const coeffs = aug.map(row => row[m]);
+    return { coeffs, xMean, xStd };
+  }
+
+  function polyEval(fit, x) {
+    const xn = (x - fit.xMean) / fit.xStd;
+    let y = 0, xp = 1;
+    for (const c of fit.coeffs) { y += c * xp; xp *= xn; }
+    return y;
+  }
+
+  function polyMSE(fit, pts) {
+    return pts.reduce((s, p) => s + (p.y - polyEval(fit, p.x)) ** 2, 0) / pts.length;
+  }
+
+  // Export to window for other IIFEs
+  window._poly = { mulberry32, trueFunc, generateData, polyFit, polyEval, polyMSE };
+})();
+
+// ============================================================
+//  DEMO 7: MODEL COMPLEXITY
+// ============================================================
+(function() {
+  const { trueFunc, generateData, polyFit, polyEval } = window._poly;
+  const canvas = document.getElementById('complexityCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = 50;
+  const xRange = [0, 10];
+  const data = generateData(30, 42, xRange);
+
+  function draw() {
+    const deg = parseInt(document.getElementById('sliderDegree').value);
+    document.getElementById('valDegree').textContent = deg;
+    document.getElementById('complexityInfo').textContent =
+      `Degree ${deg} → ${deg + 1} parameters`;
+
+    ctx.clearRect(0, 0, W, H);
+    const yMin = -2, yMax = 2;
+
+    function toC(x, y) {
+      return {
+        cx: pad + (x - xRange[0]) / (xRange[1] - xRange[0]) * (W - 2 * pad),
+        cy: H - pad - (y - yMin) / (yMax - yMin) * (H - 2 * pad)
+      };
+    }
+
+    // Grid
+    ctx.strokeStyle = '#f0f0f0'; ctx.lineWidth = 1;
+    for (let x = 0; x <= 10; x += 2) {
+      const { cx } = toC(x, 0);
+      ctx.beginPath(); ctx.moveTo(cx, pad); ctx.lineTo(cx, H - pad); ctx.stroke();
+    }
+    for (let y = -2; y <= 2; y += 0.5) {
+      const { cy } = toC(0, y);
+      ctx.beginPath(); ctx.moveTo(pad, cy); ctx.lineTo(W - pad, cy); ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1.5;
+    const { cy: zeroY } = toC(0, 0);
+    ctx.beginPath(); ctx.moveTo(pad, zeroY); ctx.lineTo(W - pad, zeroY); ctx.stroke();
+
+    // True function (dashed)
+    ctx.setLineDash([6, 4]);
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let px = 0; px <= W - 2 * pad; px++) {
+      const x = xRange[0] + (px / (W - 2 * pad)) * (xRange[1] - xRange[0]);
+      const y = trueFunc(x);
+      const { cx, cy } = toC(x, y);
+      px === 0 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Polynomial fit
+    const fit = polyFit(data.map(p => p.x), data.map(p => p.y), deg);
+    ctx.strokeStyle = '#14B8A6'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let px = 0; px <= W - 2 * pad; px++) {
+      const x = xRange[0] + (px / (W - 2 * pad)) * (xRange[1] - xRange[0]);
+      const y = Math.max(yMin - 1, Math.min(yMax + 1, polyEval(fit, x)));
+      const { cx, cy } = toC(x, y);
+      px === 0 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
+    }
+    ctx.stroke();
+
+    // Data points
+    data.forEach(p => {
+      const { cx, cy } = toC(p.x, p.y);
+      ctx.fillStyle = '#1a1a2e';
+      ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    });
+
+    // Legend
+    ctx.font = '11px system-ui'; ctx.textAlign = 'left';
+    ctx.setLineDash([6, 4]);
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(W - 160, 20); ctx.lineTo(W - 130, 20); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#94a3b8'; ctx.fillText('True function', W - 125, 24);
+    ctx.strokeStyle = '#14B8A6'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(W - 160, 38); ctx.lineTo(W - 130, 38); ctx.stroke();
+    ctx.fillStyle = '#14B8A6'; ctx.fillText('Model fit', W - 125, 42);
+  }
+
+  document.getElementById('sliderDegree').addEventListener('input', draw);
+  draw();
+})();
+
+// ============================================================
+//  DEMO 8: BIAS
+// ============================================================
+(function() {
+  const { trueFunc, generateData, polyFit, polyEval, polyMSE } = window._poly;
+  const canvas = document.getElementById('biasCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = 50;
+  const xRange = [0, 10];
+  const data = generateData(30, 42, xRange);
+
+  function draw() {
+    const deg = parseInt(document.getElementById('sliderBias').value);
+    document.getElementById('valBiasDeg').textContent = deg;
+
+    ctx.clearRect(0, 0, W, H);
+    const yMin = -2, yMax = 2;
+
+    function toC(x, y) {
+      return {
+        cx: pad + (x - xRange[0]) / (xRange[1] - xRange[0]) * (W - 2 * pad),
+        cy: H - pad - (y - yMin) / (yMax - yMin) * (H - 2 * pad)
+      };
+    }
+
+    // Grid
+    ctx.strokeStyle = '#f0f0f0'; ctx.lineWidth = 1;
+    for (let x = 0; x <= 10; x += 2) {
+      const { cx } = toC(x, 0); ctx.beginPath(); ctx.moveTo(cx, pad); ctx.lineTo(cx, H - pad); ctx.stroke();
+    }
+    for (let y = -2; y <= 2; y += 0.5) {
+      const { cy } = toC(0, y); ctx.beginPath(); ctx.moveTo(pad, cy); ctx.lineTo(W - pad, cy); ctx.stroke();
+    }
+
+    const { cy: zeroY } = toC(0, 0);
+    ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(pad, zeroY); ctx.lineTo(W - pad, zeroY); ctx.stroke();
+
+    // Fit
+    const fit = polyFit(data.map(p => p.x), data.map(p => p.y), deg);
+
+    // Shade the bias region (gap between true function and model)
+    ctx.fillStyle = 'rgba(236,72,153,0.12)';
+    ctx.beginPath();
+    const steps = W - 2 * pad;
+    // Forward pass (model)
+    for (let px = 0; px <= steps; px++) {
+      const x = xRange[0] + (px / steps) * (xRange[1] - xRange[0]);
+      const y = Math.max(yMin, Math.min(yMax, polyEval(fit, x)));
+      const { cx, cy } = toC(x, y);
+      px === 0 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
+    }
+    // Reverse pass (true function)
+    for (let px = steps; px >= 0; px--) {
+      const x = xRange[0] + (px / steps) * (xRange[1] - xRange[0]);
+      const y = trueFunc(x);
+      const { cx, cy } = toC(x, y);
+      ctx.lineTo(cx, cy);
+    }
+    ctx.closePath(); ctx.fill();
+
+    // True function (dashed)
+    ctx.setLineDash([6, 4]);
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let px = 0; px <= steps; px++) {
+      const x = xRange[0] + (px / steps) * (xRange[1] - xRange[0]);
+      const y = trueFunc(x);
+      const { cx, cy } = toC(x, y);
+      px === 0 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+
+    // Model fit
+    ctx.strokeStyle = '#EC4899'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let px = 0; px <= steps; px++) {
+      const x = xRange[0] + (px / steps) * (xRange[1] - xRange[0]);
+      const y = Math.max(yMin - 1, Math.min(yMax + 1, polyEval(fit, x)));
+      const { cx, cy } = toC(x, y);
+      px === 0 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
+    }
+    ctx.stroke();
+
+    // Data points
+    data.forEach(p => {
+      const { cx, cy } = toC(p.x, p.y);
+      ctx.fillStyle = '#1a1a2e';
+      ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    });
+
+    // Legend
+    ctx.font = '11px system-ui'; ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(236,72,153,0.3)';
+    ctx.fillRect(W - 160, 12, 14, 14);
+    ctx.fillStyle = '#EC4899'; ctx.fillText('Bias (gap)', W - 140, 24);
+
+    const mse = polyMSE(fit, data);
+    const biasLabel = deg <= 2 ? 'High bias' : deg <= 5 ? 'Moderate bias' : 'Low bias';
+    document.getElementById('biasInfo').textContent =
+      `Training MSE = ${mse.toFixed(4)} — ${biasLabel}`;
+  }
+
+  document.getElementById('sliderBias').addEventListener('input', draw);
+  draw();
+})();
+
+// ============================================================
+//  DEMO 9: VARIANCE
+// ============================================================
+(function() {
+  const { trueFunc, generateData, polyFit, polyEval, mulberry32 } = window._poly;
+  const canvas = document.getElementById('varianceCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = 50;
+  const xRange = [0, 10];
+  const sampleColors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6'];
+  let baseSeed = 100;
+  let samples = [];
+
+  function generateSamples() {
+    samples = [];
+    for (let i = 0; i < 5; i++) {
+      samples.push(generateData(18, baseSeed + i * 17, xRange));
+    }
+  }
+
+  function draw() {
+    const deg = parseInt(document.getElementById('sliderVariance').value);
+    document.getElementById('valVarianceDeg').textContent = deg;
+
+    ctx.clearRect(0, 0, W, H);
+    const yMin = -2, yMax = 2;
+    const steps = W - 2 * pad;
+
+    function toC(x, y) {
+      return {
+        cx: pad + (x - xRange[0]) / (xRange[1] - xRange[0]) * (W - 2 * pad),
+        cy: H - pad - (y - yMin) / (yMax - yMin) * (H - 2 * pad)
+      };
+    }
+
+    // Grid
+    ctx.strokeStyle = '#f0f0f0'; ctx.lineWidth = 1;
+    for (let x = 0; x <= 10; x += 2) {
+      const { cx } = toC(x, 0); ctx.beginPath(); ctx.moveTo(cx, pad); ctx.lineTo(cx, H - pad); ctx.stroke();
+    }
+    for (let y = -2; y <= 2; y += 0.5) {
+      const { cy } = toC(0, y); ctx.beginPath(); ctx.moveTo(pad, cy); ctx.lineTo(W - pad, cy); ctx.stroke();
+    }
+
+    const { cy: zeroY } = toC(0, 0);
+    ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(pad, zeroY); ctx.lineTo(W - pad, zeroY); ctx.stroke();
+
+    // True function (dashed)
+    ctx.setLineDash([6, 4]);
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let px = 0; px <= steps; px++) {
+      const x = xRange[0] + (px / steps) * (xRange[1] - xRange[0]);
+      const y = trueFunc(x);
+      const { cx, cy } = toC(x, y);
+      px === 0 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+
+    // 5 polynomial fits
+    let totalSpread = 0;
+    const predictions = []; // [sampleIdx][px] = y
+    samples.forEach((sampleData, si) => {
+      const fit = polyFit(sampleData.map(p => p.x), sampleData.map(p => p.y), deg);
+      const preds = [];
+      ctx.strokeStyle = sampleColors[si]; ctx.lineWidth = 2; ctx.globalAlpha = 0.7;
+      ctx.beginPath();
+      for (let px = 0; px <= steps; px++) {
+        const x = xRange[0] + (px / steps) * (xRange[1] - xRange[0]);
+        const y = Math.max(yMin - 1, Math.min(yMax + 1, polyEval(fit, x)));
+        preds.push(y);
+        const { cx, cy } = toC(x, y);
+        px === 0 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
+      }
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      predictions.push(preds);
+    });
+
+    // Compute variance (spread of predictions)
+    for (let px = 0; px <= steps; px += 10) {
+      const vals = predictions.map(p => p[px]);
+      const mean = vals.reduce((s, v) => s + v, 0) / vals.length;
+      totalSpread += vals.reduce((s, v) => s + (v - mean) ** 2, 0) / vals.length;
+    }
+    totalSpread /= Math.floor(steps / 10);
+
+    // Legend
+    ctx.font = '11px system-ui'; ctx.textAlign = 'left';
+    samples.forEach((_, i) => {
+      ctx.strokeStyle = sampleColors[i]; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(W - 160, 16 + i * 16); ctx.lineTo(W - 135, 16 + i * 16); ctx.stroke();
+      ctx.fillStyle = sampleColors[i]; ctx.fillText(`Sample ${i + 1}`, W - 130, 20 + i * 16);
+    });
+
+    const varLabel = totalSpread < 0.02 ? 'Low' : totalSpread < 0.15 ? 'Moderate' : 'High';
+    document.getElementById('varianceInfo').textContent =
+      `Variance: ${varLabel} (spread = ${totalSpread.toFixed(4)})`;
+  }
+
+  document.getElementById('sliderVariance').addEventListener('input', draw);
+  document.getElementById('btnResample').addEventListener('click', () => {
+    baseSeed += 100;
+    generateSamples();
+    draw();
+  });
+
+  generateSamples();
+  draw();
+})();
+
+// ============================================================
+//  DEMO 10: TRAINING / VALIDATION CURVES
+// ============================================================
+(function() {
+  const canvas = document.getElementById('epochCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = 55;
+  const maxEpochs = 50;
+
+  // Pre-defined curves for three model types
+  function genCurves(type) {
+    const train = [], val = [];
+    for (let e = 0; e <= maxEpochs; e++) {
+      const t = e / maxEpochs;
+      if (type === 'simple') {
+        train.push(50 + 28 * (1 - Math.exp(-4 * t)));
+        val.push(50 + 26 * (1 - Math.exp(-4 * t)));
+      } else if (type === 'medium') {
+        train.push(50 + 45 * (1 - Math.exp(-5 * t)));
+        val.push(50 + 40 * (1 - Math.exp(-4 * t)) - 2 * t);
+      } else {
+        train.push(50 + 49 * (1 - Math.exp(-6 * t)));
+        val.push(50 + 36 * (1 - Math.exp(-3 * t)) - 18 * t * t);
+      }
+    }
+    return { train, val };
+  }
+
+  let currentCurves = null;
+  let animFrame = 0;
+  let animating = false;
+
+  function drawAxes() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid
+    ctx.strokeStyle = '#f0f0f0'; ctx.lineWidth = 1;
+    for (let e = 0; e <= maxEpochs; e += 10) {
+      const x = pad + (e / maxEpochs) * (W - 2 * pad);
+      ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, H - pad); ctx.stroke();
+      ctx.fillStyle = '#999'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText(e, x, H - pad + 16);
+    }
+    for (let a = 50; a <= 100; a += 10) {
+      const y = H - pad - ((a - 50) / 50) * (H - 2 * pad);
+      ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W - pad, y); ctx.stroke();
+      ctx.fillStyle = '#999'; ctx.font = '10px system-ui'; ctx.textAlign = 'right';
+      ctx.fillText(a + '%', pad - 8, y + 4);
+    }
+
+    // Axis labels
+    ctx.fillStyle = '#666'; ctx.font = '12px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('Epoch', W / 2, H - 8);
+    ctx.save(); ctx.translate(14, H / 2); ctx.rotate(-Math.PI / 2);
+    ctx.fillText('Accuracy', 0, 0); ctx.restore();
+  }
+
+  function drawCurves(n) {
+    if (!currentCurves) return;
+    drawAxes();
+    const { train, val } = currentCurves;
+
+    function toC(e, a) {
+      return {
+        x: pad + (e / maxEpochs) * (W - 2 * pad),
+        y: H - pad - ((a - 50) / 50) * (H - 2 * pad)
+      };
+    }
+
+    // Training curve
+    ctx.strokeStyle = '#3B82F6'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const { x, y } = toC(i, train[i]);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Validation curve
+    ctx.strokeStyle = '#F97316'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const { x, y } = toC(i, val[i]);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Gap shading
+    if (n > 5) {
+      ctx.fillStyle = 'rgba(239,68,68,0.08)';
+      ctx.beginPath();
+      for (let i = 0; i <= n; i++) {
+        const { x, y } = toC(i, train[i]);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      for (let i = n; i >= 0; i--) {
+        const { x, y } = toC(i, val[i]);
+        ctx.lineTo(x, y);
+      }
+      ctx.closePath(); ctx.fill();
+    }
+
+    // Legend
+    ctx.font = '12px system-ui'; ctx.textAlign = 'left';
+    ctx.strokeStyle = '#3B82F6'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(pad + 10, 25); ctx.lineTo(pad + 35, 25); ctx.stroke();
+    ctx.fillStyle = '#3B82F6'; ctx.fillText('Training', pad + 40, 29);
+    ctx.strokeStyle = '#F97316'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(pad + 110, 25); ctx.lineTo(pad + 135, 25); ctx.stroke();
+    ctx.fillStyle = '#F97316'; ctx.fillText('Validation', pad + 140, 29);
+
+    // Stats
+    if (n > 0) {
+      const gap = Math.abs(train[n] - val[n]).toFixed(1);
+      document.getElementById('epochInfo').textContent =
+        `Epoch ${n}: Train ${train[n].toFixed(1)}% | Val ${val[n].toFixed(1)}% | Gap: ${gap}%`;
+    }
+  }
+
+  function startAnimation(type) {
+    currentCurves = genCurves(type);
+    animFrame = 0;
+    animating = true;
+    function step() {
+      drawCurves(animFrame);
+      animFrame++;
+      if (animFrame <= maxEpochs && animating) {
+        setTimeout(step, 50);
+      } else {
+        animating = false;
+      }
+    }
+    step();
+  }
+
+  document.getElementById('btnTrainSimple').addEventListener('click', () => { animating = false; setTimeout(() => startAnimation('simple'), 60); });
+  document.getElementById('btnTrainMedium').addEventListener('click', () => { animating = false; setTimeout(() => startAnimation('medium'), 60); });
+  document.getElementById('btnTrainComplex').addEventListener('click', () => { animating = false; setTimeout(() => startAnimation('complex'), 60); });
+  document.getElementById('btnResetEpoch').addEventListener('click', () => {
+    animating = false; currentCurves = null;
+    drawAxes();
+    document.getElementById('epochInfo').textContent = 'Pick a model and click to train';
+  });
+
+  drawAxes();
+})();
+
+// ============================================================
+//  DEMO 11: UNDERFITTING / OVERFITTING U-CURVE
+// ============================================================
+(function() {
+  const { generateData, polyFit, polyMSE } = window._poly;
+  const canvas = document.getElementById('ucurveCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = 55;
+  const xRange = [0, 10];
+
+  // Generate train and test sets
+  const trainData = generateData(30, 42, xRange);
+  const testData = generateData(30, 999, xRange);
+
+  // Compute errors for degrees 1-12
+  const degrees = [];
+  const trainErrors = [];
+  const testErrors = [];
+  for (let d = 1; d <= 12; d++) {
+    degrees.push(d);
+    const fit = polyFit(trainData.map(p => p.x), trainData.map(p => p.y), d);
+    trainErrors.push(polyMSE(fit, trainData));
+    testErrors.push(polyMSE(fit, testData));
+  }
+
+  const errMax = Math.min(Math.max(...testErrors, ...trainErrors) * 1.1, 0.5);
+  const errMin = 0;
+  const bestDeg = degrees[testErrors.indexOf(Math.min(...testErrors))];
+
+  function draw(hoverDeg) {
+    ctx.clearRect(0, 0, W, H);
+
+    function toC(d, e) {
+      return {
+        x: pad + ((d - 1) / 11) * (W - 2 * pad),
+        y: H - pad - ((e - errMin) / (errMax - errMin)) * (H - 2 * pad)
+      };
+    }
+
+    // Grid
+    ctx.strokeStyle = '#f0f0f0'; ctx.lineWidth = 1;
+    degrees.forEach(d => {
+      const { x } = toC(d, 0);
+      ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, H - pad); ctx.stroke();
+    });
+
+    // Zone shading
+    const { x: xBest } = toC(bestDeg, 0);
+    // Underfitting zone
+    ctx.fillStyle = 'rgba(59,130,246,0.06)';
+    ctx.fillRect(pad, pad, xBest - pad - 20, H - 2 * pad);
+    // Overfitting zone
+    ctx.fillStyle = 'rgba(239,68,68,0.06)';
+    ctx.fillRect(xBest + 20, pad, W - pad - xBest - 20, H - 2 * pad);
+
+    // Zone labels
+    ctx.font = '11px system-ui'; ctx.textAlign = 'center'; ctx.fillStyle = '#94a3b8';
+    ctx.fillText('UNDERFITTING', (pad + xBest) / 2, pad + 16);
+    ctx.fillText('OVERFITTING', (xBest + W - pad) / 2, pad + 16);
+
+    // Sweet spot line
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = '#10B981'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(xBest, pad); ctx.lineTo(xBest, H - pad); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#10B981'; ctx.font = 'bold 11px system-ui';
+    ctx.fillText('Sweet spot', xBest, pad + 32);
+
+    // Training error curve
+    ctx.strokeStyle = '#3B82F6'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    degrees.forEach((d, i) => {
+      const { x, y } = toC(d, Math.min(trainErrors[i], errMax));
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Test error curve
+    ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    degrees.forEach((d, i) => {
+      const { x, y } = toC(d, Math.min(testErrors[i], errMax));
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Points
+    degrees.forEach((d, i) => {
+      [{ err: trainErrors[i], col: '#3B82F6' }, { err: testErrors[i], col: '#EF4444' }].forEach(({ err, col }) => {
+        const { x, y } = toC(d, Math.min(err, errMax));
+        ctx.fillStyle = col;
+        ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+      });
+    });
+
+    // Hover highlight
+    if (hoverDeg >= 1 && hoverDeg <= 12) {
+      const i = hoverDeg - 1;
+      const { x } = toC(hoverDeg, 0);
+      ctx.strokeStyle = 'rgba(0,0,0,0.1)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, H - pad); ctx.stroke();
+      document.getElementById('ucurveInfo').textContent =
+        `Degree ${hoverDeg}: Train MSE = ${trainErrors[i].toFixed(4)}, Test MSE = ${testErrors[i].toFixed(4)}`;
+    }
+
+    // Axis labels
+    ctx.fillStyle = '#666'; ctx.font = '12px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('Model Complexity (polynomial degree)', W / 2, H - 8);
+    degrees.forEach(d => {
+      const { x } = toC(d, 0);
+      ctx.fillStyle = '#999'; ctx.font = '10px system-ui';
+      ctx.fillText(d, x, H - pad + 16);
+    });
+    ctx.save(); ctx.translate(14, H / 2); ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#666'; ctx.font = '12px system-ui';
+    ctx.fillText('Error (MSE)', 0, 0); ctx.restore();
+
+    // Legend
+    ctx.textAlign = 'left'; ctx.font = '12px system-ui';
+    ctx.strokeStyle = '#3B82F6'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(pad + 10, 25); ctx.lineTo(pad + 35, 25); ctx.stroke();
+    ctx.fillStyle = '#3B82F6'; ctx.fillText('Training error', pad + 40, 29);
+    ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(pad + 150, 25); ctx.lineTo(pad + 175, 25); ctx.stroke();
+    ctx.fillStyle = '#EF4444'; ctx.fillText('Test error', pad + 180, 29);
+  }
+
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const d = Math.round(1 + ((mx - pad) / (W - 2 * pad)) * 11);
+    draw(Math.max(1, Math.min(12, d)));
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    draw(-1);
+    document.getElementById('ucurveInfo').textContent = '';
+  });
+
+  draw(-1);
+})();
+
+// ============================================================
+//  DEMO 12: CROSS VALIDATION
+// ============================================================
+(function() {
+  function drawCV() {
+    const k = parseInt(document.getElementById('sliderK').value);
+    document.getElementById('valK').textContent = k;
+    document.getElementById('cvInfo').textContent =
+      `${k}-Fold CV: each data point is used for validation exactly once`;
+
+    const container = document.getElementById('cvContainer');
+    let html = '';
+    for (let iter = 0; iter < k; iter++) {
+      html += `<div class="cv-row"><span class="cv-label">Iter ${iter + 1}</span>`;
+      for (let fold = 0; fold < k; fold++) {
+        const isVal = fold === iter;
+        html += `<div class="cv-fold ${isVal ? 'val' : 'train'}"></div>`;
+      }
+      html += '</div>';
+    }
+    container.innerHTML = html;
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '4px';
+  }
+
+  document.getElementById('sliderK').addEventListener('input', drawCV);
+  drawCV();
+})();
+
+// ============================================================
+//  DEMO 13: BAYES ERROR — Error Decomposition
+// ============================================================
+(function() {
+  const canvas = document.getElementById('bayesCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = 55;
+
+  const bayesError = 0.03; // irreducible noise
+
+  // Simulated bias² and variance as functions of complexity
+  function biasSquared(c) { return 0.35 * Math.exp(-0.3 * c) + 0.005; }
+  function variance(c) { return 0.005 * Math.exp(0.22 * c); }
+  function totalError(c) { return biasSquared(c) + variance(c) + bayesError; }
+
+  function draw() {
+    const c = parseInt(document.getElementById('sliderBayes').value);
+    document.getElementById('valBayes').textContent = c;
+
+    ctx.clearRect(0, 0, W, H);
+    const cMin = 1, cMax = 20, eMin = 0, eMax = 0.5;
+
+    function toC(cv, ev) {
+      return {
+        x: pad + ((cv - cMin) / (cMax - cMin)) * (W - 2 * pad),
+        y: H - pad - ((ev - eMin) / (eMax - eMin)) * (H - 2 * pad)
+      };
+    }
+
+    // Grid
+    ctx.strokeStyle = '#f0f0f0'; ctx.lineWidth = 1;
+    for (let cv = 2; cv <= 20; cv += 2) {
+      const { x } = toC(cv, 0);
+      ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, H - pad); ctx.stroke();
+    }
+    for (let ev = 0; ev <= eMax; ev += 0.1) {
+      const { y } = toC(0, ev);
+      ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W - pad, y); ctx.stroke();
+    }
+
+    // Bayes error line
+    const { y: bayesY } = toC(0, bayesError);
+    ctx.setLineDash([8, 4]);
+    ctx.strokeStyle = '#64748B'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(pad, bayesY); ctx.lineTo(W - pad, bayesY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#64748B'; ctx.font = 'bold 11px system-ui'; ctx.textAlign = 'left';
+    ctx.fillText('Bayes Error (irreducible)', pad + 5, bayesY - 8);
+
+    // Draw curves
+    const curves = [
+      { fn: biasSquared, color: '#EC4899', label: 'Bias²' },
+      { fn: variance, color: '#06B6D4', label: 'Variance' },
+      { fn: totalError, color: '#1a1a2e', label: 'Total Error', width: 3 },
+    ];
+
+    curves.forEach(({ fn, color, label, width }) => {
+      ctx.strokeStyle = color; ctx.lineWidth = width || 2;
+      ctx.beginPath();
+      for (let cv = cMin; cv <= cMax; cv += 0.5) {
+        const ev = Math.min(fn(cv), eMax);
+        const { x, y } = toC(cv, ev);
+        cv === cMin ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    });
+
+    // Current position vertical line
+    const { x: cx } = toC(c, 0);
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx, pad); ctx.lineTo(cx, H - pad); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Dots at current complexity
+    const b2 = biasSquared(c), v = variance(c), te = totalError(c);
+    [{ val: b2, col: '#EC4899' }, { val: v, col: '#06B6D4' }, { val: te, col: '#1a1a2e' }].forEach(({ val, col }) => {
+      const { x, y } = toC(c, Math.min(val, eMax));
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+    });
+
+    // Legend
+    ctx.font = '11px system-ui'; ctx.textAlign = 'left';
+    let ly = 20;
+    curves.forEach(({ color, label }) => {
+      ctx.strokeStyle = color; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(W - 160, ly); ctx.lineTo(W - 135, ly); ctx.stroke();
+      ctx.fillStyle = color; ctx.fillText(label, W - 130, ly + 4);
+      ly += 18;
+    });
+    ctx.setLineDash([8, 4]); ctx.strokeStyle = '#64748B'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(W - 160, ly); ctx.lineTo(W - 135, ly); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#64748B'; ctx.fillText('Bayes Error', W - 130, ly + 4);
+
+    // Axis labels
+    ctx.fillStyle = '#666'; ctx.font = '12px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText('Model Complexity', W / 2, H - 8);
+    for (let cv = 2; cv <= 20; cv += 2) {
+      const { x } = toC(cv, 0);
+      ctx.fillStyle = '#999'; ctx.font = '10px system-ui'; ctx.fillText(cv, x, H - pad + 16);
+    }
+    ctx.save(); ctx.translate(14, H / 2); ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#666'; ctx.font = '12px system-ui'; ctx.fillText('Error', 0, 0);
+    ctx.restore();
+
+    // Update decomposition bar
+    const total = b2 + v + bayesError;
+    document.getElementById('decompBias').style.width = (b2 / total * 100) + '%';
+    document.getElementById('decompBias').textContent = `Bias² ${(b2 / total * 100).toFixed(0)}%`;
+    document.getElementById('decompVariance').style.width = (v / total * 100) + '%';
+    document.getElementById('decompVariance').textContent = `Var ${(v / total * 100).toFixed(0)}%`;
+    document.getElementById('decompNoise').style.width = (bayesError / total * 100) + '%';
+    document.getElementById('decompNoise').textContent = `Noise ${(bayesError / total * 100).toFixed(0)}%`;
+
+    document.getElementById('bayesInfo').textContent =
+      `Bias² = ${b2.toFixed(4)} | Variance = ${v.toFixed(4)} | Bayes = ${bayesError.toFixed(4)} | Total = ${te.toFixed(4)}`;
+  }
+
+  document.getElementById('sliderBayes').addEventListener('input', draw);
+  draw();
+})();
+
+// ============================================================
+//  NAVIGATION: Active section tracking
+// ============================================================
+(function() {
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('nav.sidebar ul li a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => link.classList.remove('active'));
+        const active = document.querySelector(`nav.sidebar a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+})();
+
+// ============================================================
+//  BUILD QUIZZES
+// ============================================================
+buildQuizzes();
+</script>
+
+</body>
+</html>
