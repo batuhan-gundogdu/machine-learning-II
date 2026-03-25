@@ -11,6 +11,7 @@ class Data:
         self.batch_size = batch_size
         self.test = test
         self.size = size
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.dataloader = self.load_data()
         
 
@@ -27,8 +28,8 @@ class Data:
             random.shuffle(indices)
             dataset = torch.utils.data.Subset(dataset, indices) 
 
-        image_data = torch.stack([transform(img) for img, _ in dataset])
-        labels = torch.tensor([label for _, label in dataset])
+        image_data = torch.stack([transform(img) for img, _ in dataset]).to(self.device)
+        labels = torch.tensor([label for _, label in dataset]).to(self.device)
         dataset = TensorDataset(image_data, labels)
         dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=False)  
 
@@ -43,7 +44,7 @@ class Data:
             # make a grid of 4x4 images
             fig, axs = plt.subplots(4, 4, figsize=(5, 5))
             for i in range(data.shape[0]):
-                axs[i//4, i%4].imshow(data[i].squeeze().numpy(), cmap='gray')
+                axs[i//4, i%4].imshow(data[i].squeeze().cpu().numpy(), cmap='gray')
                 axs[i//4, i%4].set_title(class_names[target[i].item()])
                 axs[i//4, i%4].axis('off')
             plt.show()

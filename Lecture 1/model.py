@@ -8,12 +8,14 @@ class Model(nn.Module):
     def __init__(self, capacity=0):
         super(Model, self).__init__()
         self.capacity = capacity
+        self._device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if capacity > 0:
             self.fc1 = nn.Linear(32*32*1, 256)
             self.layers = nn.ModuleList([nn.Linear(256, 256) for _ in range(capacity)])
             self.fc2 = nn.Linear(256, 10)
         else:
             self.fc1 = nn.Linear(32*32*1, 10)
+        self.to(self._device)
 
     def forward(self, x):
         x = x.view(x.size(0), -1)
