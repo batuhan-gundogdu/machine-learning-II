@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture-2: Error Surface in Linear Classification — ML II</title>
+<script>
+MathJax = { tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+:root {
+  --bg: #f8f9fa;
+  --text: #1a1a2e;
+  --text-light: #555;
+  --card-bg: #fff;
+  --sidebar-bg: #800000;
+  --sidebar-text: #ccc;
+  --sidebar-active: #fff;
+  --accent-1: #3B82F6;
+  --accent-2: #10B981;
+  --accent-3: #8B5CF6;
+  --accent-4: #F59E0B;
+  --accent-5: #EF4444;
+  --border: #e2e8f0;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  display: flex;
+}
+
+/* Sidebar */
+nav.sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: 260px;
+  height: 100vh;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  padding: 2rem 0;
+  overflow-y: auto;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+nav.sidebar .logo {
+  padding: 0 1.5rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 1rem;
+}
+
+nav.sidebar .logo h2 {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+nav.sidebar .logo p {
+  font-size: 0.8rem;
+  opacity: 1;
+  color: #fff;
+  margin-top: 0.25rem;
+}
+
+nav.sidebar ul {
+  list-style: none;
+  flex: 1;
+}
+
+nav.sidebar li a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+
+nav.sidebar li a:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.05);
+}
+
+nav.sidebar li a.active {
+  color: var(--sidebar-active);
+  border-left-color: var(--accent-1);
+  background: rgba(255,255,255,0.08);
+}
+
+nav.sidebar li a .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bg-accent-1 { background: var(--accent-1); }
+.bg-accent-2 { background: var(--accent-2); }
+.bg-accent-3 { background: var(--accent-3); }
+.bg-accent-4 { background: var(--accent-4); }
+
+/* Main content */
+main {
+  margin-left: 260px;
+  flex: 1;
+  min-height: 100vh;
+}
+
+header.hero {
+  background: linear-gradient(135deg, var(--sidebar-bg) 0%, #2d2d5e 100%);
+  color: #fff;
+  padding: 5rem 3rem 4rem;
+}
+
+header.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.75rem;
+}
+
+header.hero p {
+  font-size: 1.15rem;
+  opacity: 1;
+  color: #fff;
+  max-width: 600px;
+}
+
+/* Sections */
+section {
+  padding: 3rem 3rem 1rem;
+  max-width: 1100px;
+}
+
+section#interactive {
+  max-width: none;
+}
+
+section .section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+section .section-number {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+section h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+p, .explanation {
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: var(--text-light);
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Controls */
+.controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.control-group label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.control-group .control-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.control-group input[type="range"] {
+  flex: 1;
+  accent-color: var(--sidebar-bg);
+}
+
+.control-group .val {
+  font-size: 0.8rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--text-light);
+  min-width: 3rem;
+  text-align: right;
+}
+
+.control-group input[type="number"] {
+  width: 70px;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+button.resample {
+  padding: 0.5rem 1.2rem;
+  background: var(--sidebar-bg);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button.resample:hover {
+  background: #5c0000;
+}
+
+/* Canvases side by side */
+.canvas-container {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+.canvas-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.canvas-wrap h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+canvas {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  cursor: crosshair;
+}
+
+.info-bar {
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--text-light);
+  min-height: 1.2em;
+}
+
+/* Math */
+.math-block {
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin: 1rem 0;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.88rem;
+  overflow-x: auto;
+}
+
+@media (max-width: 900px) {
+  nav.sidebar { display: none; }
+  main { margin-left: 0; padding: 1.5rem; }
+  .controls-grid { grid-template-columns: 1fr; }
+  .canvas-container { flex-direction: column; align-items: center; }
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="logo">
+    <h2>ADSP 31018 Machine Learning II</h2>
+    <p>Batu Gundogdu</p>
+  </div>
+  <ul>
+    <li><a href="#intro" class="active">
+      <span class="dot bg-accent-1"></span> Introduction
+    </a></li>
+    <li><a href="#setup">
+      <span class="dot bg-accent-2"></span> Setup &amp; Model
+    </a></li>
+    <li><a href="#interactive">
+      <span class="dot bg-accent-3"></span> Interactive Explorer
+    </a></li>
+    <li><a href="#interpretation">
+      <span class="dot bg-accent-4"></span> Interpretation
+    </a></li>
+  </ul>
+</nav>
+
+<main>
+<header class="hero">
+  <h1>Lecture-2: Error Surface in Linear Classification</h1>
+  <p>Visualizing the cross-entropy loss landscape in weight space — an interactive guide.</p>
+</header>
+
+  <!-- Intro -->
+  <section id="intro">
+    <div class="section-header">
+      <div class="section-number bg-accent-1">1</div>
+      <h2>Introduction</h2>
+    </div>
+    <p>
+      In linear classification we model the posterior probability of class 1 as
+    </p>
+    <div class="math-block">
+      $$y(\mathbf{x};\,\mathbf{w}) = \sigma(\mathbf{w}^\top\mathbf{x}) = \frac{1}{1+\exp(-\mathbf{w}^\top\mathbf{x})}$$
+    </div>
+    <p>
+      where $\mathbf{w} = (w_1, w_2)$ and the bias is fixed at zero.
+      This tutorial lets you explore how the <em>cross-entropy error surface</em> in
+      $\mathbf{w}$-space relates to the decision boundary in $\mathbf{x}$-space.
+    </p>
+  </section>
+
+  <!-- Setup -->
+  <section id="setup">
+    <div class="section-header">
+      <div class="section-number bg-accent-2">2</div>
+      <h2>Setup &amp; Model</h2>
+    </div>
+    <p>
+      We generate two classes from Gaussian distributions that share a covariance matrix $\Sigma$
+      but have different means $\boldsymbol{\mu}_0$ and $\boldsymbol{\mu}_1$.
+      The cross-entropy (negative log-likelihood) for $N$ data points is:
+    </p>
+    <div class="math-block">
+      $$E(\mathbf{w}) = -\sum_{n=1}^{N}\bigl[\,r_n \ln y_n + (1-r_n)\ln(1-y_n)\,\bigr]$$
+    </div>
+    <p>
+      where $r_n \in \{0,1\}$ is the class label and $y_n = \sigma(\mathbf{w}^\top\mathbf{x}_n)$.
+      With zero bias the decision boundary always passes through the origin: $w_1 x_1 + w_2 x_2 = 0$.
+    </p>
+  </section>
+
+  <!-- Interactive -->
+  <section id="interactive">
+    <div class="section-header">
+      <div class="section-number bg-accent-3">3</div>
+      <h2>Interactive Explorer</h2>
+    </div>
+
+    <div class="card">
+      <div class="controls-grid">
+        <div class="control-group">
+          <label>&mu;<sub>0</sub> (Class 0 mean)</label>
+          <div class="control-row">
+            x<sub>1</sub>: <input type="range" id="mu0x" min="-4" max="4" step="0.1" value="0.3">
+            <span class="val" id="mu0x-val">0.3</span>
+          </div>
+          <div class="control-row">
+            x<sub>2</sub>: <input type="range" id="mu0y" min="-4" max="4" step="0.1" value="1.9">
+            <span class="val" id="mu0y-val">1.9</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>&mu;<sub>1</sub> (Class 1 mean)</label>
+          <div class="control-row">
+            x<sub>1</sub>: <input type="range" id="mu1x" min="-4" max="4" step="0.1" value="-0.6">
+            <span class="val" id="mu1x-val">-0.6</span>
+          </div>
+          <div class="control-row">
+            x<sub>2</sub>: <input type="range" id="mu1y" min="-4" max="4" step="0.1" value="-0.6">
+            <span class="val" id="mu1y-val">-0.6</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Shared covariance &Sigma;</label>
+          <div class="control-row">
+            &sigma;<sub>11</sub>: <input type="range" id="s11" min="0.2" max="3" step="0.1" value="1.0">
+            <span class="val" id="s11-val">1.0</span>
+          </div>
+          <div class="control-row">
+            &sigma;<sub>22</sub>: <input type="range" id="s22" min="0.2" max="3" step="0.1" value="1.5">
+            <span class="val" id="s22-val">1.5</span>
+          </div>
+          <div class="control-row">
+            &sigma;<sub>12</sub>: <input type="range" id="s12" min="-2" max="2" step="0.1" value="-0.9">
+            <span class="val" id="s12-val">-0.9</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Samples &amp; Actions</label>
+          <div class="control-row">
+            N per class: <input type="number" id="nsamples" min="10" max="500" step="10" value="80">
+          </div>
+          <div class="control-row" style="margin-top:0.4rem;">
+            <button class="resample" onclick="resample()">Resample &amp; Redraw</button>
+            <label style="font-size:0.82rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:0.3rem; margin-left:0.5rem;">
+              <input type="checkbox" id="revealCheck" onchange="toggleSurface()"> Show Error Surface
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <div class="canvas-wrap">
+          <h3>x-space (Data)</h3>
+          <canvas id="xCanvas" width="480" height="480"></canvas>
+          <div class="info-bar" id="x-info">&nbsp;</div>
+        </div>
+        <div class="canvas-wrap">
+          <h3>w-space (Error Surface)</h3>
+          <canvas id="wCanvas" width="480" height="480"></canvas>
+          <div class="info-bar" id="w-info" style="margin-top:0.5rem;">Hover to explore w-space</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interpretation -->
+  <section id="interpretation">
+    <div class="section-header">
+      <div class="section-number bg-accent-4">4</div>
+      <h2>Interpretation</h2>
+    </div>
+    <p>
+      <strong>Darker regions</strong> in $\mathbf{w}$-space correspond to lower cross-entropy error &mdash;
+      the weight vectors there separate the two classes well. The <strong>contour lines</strong>
+      (equi-error curves) show sets of weight vectors that achieve the same loss.
+    </p>
+    <p>
+      When you hover over the error surface, the corresponding
+      <strong>decision boundary</strong> $w_1 x_1 + w_2 x_2 = 0$
+      appears on the $\mathbf{x}$-space plot. Notice how weight vectors in the low-error valley produce
+      boundaries that separate the classes, while those on the high-error plateau produce
+      boundaries that merge or misclassify them.
+    </p>
+    <p>
+      Because the bias is zero, the boundary is always a line through the origin.
+      The direction of $\mathbf{w}$ determines the orientation of the boundary
+      (the boundary is perpendicular to $\mathbf{w}$), and the magnitude $\|\mathbf{w}\|$
+      controls the steepness of the sigmoid transition.
+    </p>
+  </section>
+</main>
+
+<script>
+// ========== Globals ==========
+const xCanvas = document.getElementById('xCanvas');
+const wCanvas = document.getElementById('wCanvas');
+const xCtx = xCanvas.getContext('2d');
+const wCtx = wCanvas.getContext('2d');
+
+const W = 480, H = 480;
+
+// x-space range
+const xMin = -6, xMax = 6;
+// w-space range
+const wMin = -5, wMax = 5;
+
+let data0 = [], data1 = [];
+let errorImage = null;   // ImageData for w-space heatmap
+let errorGrid = null;    // 2D array of error values for contours
+const gridRes = 200;     // resolution for error grid
+let surfaceRevealed = false;
+
+// ========== Utility ==========
+function sigmoid(z) {
+  if (z > 20) return 1;
+  if (z < -20) return 0;
+  return 1 / (1 + Math.exp(-z));
+}
+
+// Box-Muller
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+// Sample from N(mu, Sigma) using Cholesky
+function sampleGaussian(mu, sigma, n) {
+  // Cholesky of 2x2: [[a,0],[c,d]]
+  const a = Math.sqrt(sigma[0][0]);
+  const c = sigma[1][0] / a;
+  const d = Math.sqrt(sigma[1][1] - c * c);
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const z1 = randn(), z2 = randn();
+    pts.push([
+      mu[0] + a * z1,
+      mu[1] + c * z1 + d * z2
+    ]);
+  }
+  return pts;
+}
+
+// Cross-entropy error for given w
+function crossEntropy(w1, w2, data0, data1) {
+  let E = 0;
+  const eps = 1e-15;
+  // Class 0: t=0
+  for (const p of data0) {
+    const y = sigmoid(w1 * p[0] + w2 * p[1]);
+    E -= Math.log(1 - y + eps);
+  }
+  // Class 1: t=1
+  for (const p of data1) {
+    const y = sigmoid(w1 * p[0] + w2 * p[1]);
+    E -= Math.log(y + eps);
+  }
+  return E;
+}
+
+// Map data coords to canvas pixels
+function xToPixel(v) { return (v - xMin) / (xMax - xMin) * W; }
+function yToPixel(v) { return H - (v - xMin) / (xMax - xMin) * H; }
+function wToPixelX(v) { return (v - wMin) / (wMax - wMin) * W; }
+function wToPixelY(v) { return H - (v - wMin) / (wMax - wMin) * H; }
+function pixelToW1(px) { return wMin + px / W * (wMax - wMin); }
+function pixelToW2(py) { return wMax - py / H * (wMax - wMin); }
+
+// ========== Read controls ==========
+function getParams() {
+  return {
+    mu0: [parseFloat(document.getElementById('mu0x').value),
+          parseFloat(document.getElementById('mu0y').value)],
+    mu1: [parseFloat(document.getElementById('mu1x').value),
+          parseFloat(document.getElementById('mu1y').value)],
+    sigma: [
+      [parseFloat(document.getElementById('s11').value),
+       parseFloat(document.getElementById('s12').value)],
+      [parseFloat(document.getElementById('s12').value),
+       parseFloat(document.getElementById('s22').value)]
+    ],
+    n: parseInt(document.getElementById('nsamples').value)
+  };
+}
+
+// Validate covariance is positive-definite
+function isPosDef(sigma) {
+  return sigma[0][0] > 0 && (sigma[0][0] * sigma[1][1] - sigma[0][1] * sigma[1][0]) > 0;
+}
+
+// ========== Color maps ==========
+// Viridis-like colormap
+function viridis(t) {
+  // t in [0,1], 0=dark/low, 1=bright/high
+  t = Math.max(0, Math.min(1, t));
+  // Simplified viridis
+  const r = Math.round(255 * Math.max(0, Math.min(1, -0.0461 + t * (0.1096 + t * (4.3982 + t * (-14.019 + t * (13.228 - t * 4.156)))))));
+  const g = Math.round(255 * Math.max(0, Math.min(1, 0.0267 + t * (1.4238 + t * (-1.1443 + t * (1.5765 + t * (-2.4863 + t * 1.5478)))))));
+  const b = Math.round(255 * Math.max(0, Math.min(1, 0.3291 + t * (1.5375 + t * (-5.3655 + t * (10.9978 + t * (-10.518 + t * 3.7762)))))));
+  return [r, g, b];
+}
+
+// ========== Draw x-space ==========
+const probRes = 80; // resolution for probability shading grid
+
+function drawXSpace(hoverW) {
+  xCtx.clearRect(0, 0, W, H);
+
+  // Probability shading when hovering
+  if (hoverW) {
+    const [w1, w2] = hoverW;
+    const wNorm = Math.sqrt(w1*w1 + w2*w2);
+    if (wNorm > 1e-6) {
+      const cellW = W / probRes;
+      const cellH = H / probRes;
+      for (let j = 0; j < probRes; j++) {
+        const x2 = xMax - (j + 0.5) / probRes * (xMax - xMin);
+        for (let i = 0; i < probRes; i++) {
+          const x1 = xMin + (i + 0.5) / probRes * (xMax - xMin);
+          const p = sigmoid(w1 * x1 + w2 * x2);
+          // p > 0.5 → class 1 (red), p < 0.5 → class 0 (blue)
+          if (p >= 0.5) {
+            const strength = (p - 0.5) * 2; // 0 to 1
+            const alpha = strength * 0.45;
+            xCtx.fillStyle = `rgba(239, 68, 68, ${alpha})`;
+          } else {
+            const strength = (0.5 - p) * 2; // 0 to 1
+            const alpha = strength * 0.45;
+            xCtx.fillStyle = `rgba(59, 130, 246, ${alpha})`;
+          }
+          xCtx.fillRect(i * cellW, j * cellH, cellW + 0.5, cellH + 0.5);
+        }
+      }
+    }
+  }
+
+  // Grid lines
+  xCtx.strokeStyle = hoverW ? 'rgba(180,180,180,0.3)' : '#f0f0f0';
+  xCtx.lineWidth = 1;
+  for (let v = Math.ceil(xMin); v <= xMax; v++) {
+    const px = xToPixel(v);
+    const py = yToPixel(v);
+    xCtx.beginPath(); xCtx.moveTo(px, 0); xCtx.lineTo(px, H); xCtx.stroke();
+    xCtx.beginPath(); xCtx.moveTo(0, py); xCtx.lineTo(W, py); xCtx.stroke();
+  }
+
+  // Axes
+  xCtx.strokeStyle = hoverW ? 'rgba(150,150,150,0.5)' : '#ccc';
+  xCtx.lineWidth = 1.5;
+  const ox = xToPixel(0), oy = yToPixel(0);
+  xCtx.beginPath(); xCtx.moveTo(ox, 0); xCtx.lineTo(ox, H); xCtx.stroke();
+  xCtx.beginPath(); xCtx.moveTo(0, oy); xCtx.lineTo(W, oy); xCtx.stroke();
+
+  // Axis labels
+  xCtx.fillStyle = '#999';
+  xCtx.font = '11px -apple-system, sans-serif';
+  xCtx.textAlign = 'center';
+  for (let v = Math.ceil(xMin); v <= xMax; v++) {
+    if (v === 0) continue;
+    xCtx.fillText(v, xToPixel(v), oy + 14);
+    xCtx.fillText(v, ox - 10, yToPixel(v) + 4);
+  }
+  xCtx.fillStyle = '#666';
+  xCtx.font = '13px -apple-system, sans-serif';
+  xCtx.fillText('x\u2081', W - 15, oy - 8);
+  xCtx.fillText('x\u2082', ox + 14, 15);
+
+  // Data points - Class 0
+  for (const p of data0) {
+    const px = xToPixel(p[0]), py = yToPixel(p[1]);
+    if (px < 0 || px > W || py < 0 || py > H) continue;
+    xCtx.beginPath();
+    xCtx.arc(px, py, 4, 0, 2 * Math.PI);
+    xCtx.fillStyle = 'rgba(59, 130, 246, 0.7)';
+    xCtx.fill();
+    xCtx.strokeStyle = 'rgba(30, 64, 175, 0.9)';
+    xCtx.lineWidth = 1.2;
+    xCtx.stroke();
+  }
+
+  // Data points - Class 1
+  for (const p of data1) {
+    const px = xToPixel(p[0]), py = yToPixel(p[1]);
+    if (px < 0 || px > W || py < 0 || py > H) continue;
+    xCtx.beginPath();
+    xCtx.arc(px, py, 4, 0, 2 * Math.PI);
+    xCtx.fillStyle = 'rgba(239, 68, 68, 0.7)';
+    xCtx.fill();
+    xCtx.strokeStyle = 'rgba(153, 27, 27, 0.9)';
+    xCtx.lineWidth = 1.2;
+    xCtx.stroke();
+  }
+
+  // Decision boundary + w arrow for hovered w
+  if (hoverW) {
+    const [w1, w2] = hoverW;
+
+    // Decision boundary line: w1*x1 + w2*x2 = 0
+    xCtx.strokeStyle = '#1a1a2e';
+    xCtx.lineWidth = 2.5;
+    xCtx.setLineDash([8, 4]);
+    if (Math.abs(w2) > 1e-8) {
+      const slope = -w1 / w2;
+      const x1a = xMin, x2a = slope * x1a;
+      const x1b = xMax, x2b = slope * x1b;
+      xCtx.beginPath();
+      xCtx.moveTo(xToPixel(x1a), yToPixel(x2a));
+      xCtx.lineTo(xToPixel(x1b), yToPixel(x2b));
+      xCtx.stroke();
+    } else if (Math.abs(w1) > 1e-8) {
+      xCtx.beginPath();
+      xCtx.moveTo(xToPixel(0), 0);
+      xCtx.lineTo(xToPixel(0), H);
+      xCtx.stroke();
+    }
+    xCtx.setLineDash([]);
+
+    // Draw w vector arrow from origin
+    const wNorm = Math.sqrt(w1*w1 + w2*w2);
+    if (wNorm > 0.1) {
+      const arrowLen = Math.min(wNorm, 3);
+      const wDir1 = w1 / wNorm * arrowLen;
+      const wDir2 = w2 / wNorm * arrowLen;
+      xCtx.strokeStyle = '#800000';
+      xCtx.lineWidth = 2;
+      xCtx.fillStyle = '#800000';
+      const ax = xToPixel(0), ay = yToPixel(0);
+      const bx = xToPixel(wDir1), by = yToPixel(wDir2);
+      xCtx.beginPath();
+      xCtx.moveTo(ax, ay);
+      xCtx.lineTo(bx, by);
+      xCtx.stroke();
+      // Arrowhead
+      const angle = Math.atan2(ay - by, bx - ax);
+      const headLen = 10;
+      xCtx.beginPath();
+      xCtx.moveTo(bx, by);
+      xCtx.lineTo(bx - headLen * Math.cos(angle - 0.4), by + headLen * Math.sin(angle - 0.4));
+      xCtx.lineTo(bx - headLen * Math.cos(angle + 0.4), by + headLen * Math.sin(angle + 0.4));
+      xCtx.closePath();
+      xCtx.fill();
+    }
+
+    // Label
+    xCtx.fillStyle = '#1a1a2e';
+    xCtx.font = 'bold 12px -apple-system, sans-serif';
+    xCtx.textAlign = 'left';
+    xCtx.fillText(`w = (${w1.toFixed(2)}, ${w2.toFixed(2)})`, 10, 20);
+  }
+
+  // Legend
+  xCtx.font = '12px -apple-system, sans-serif';
+  xCtx.textAlign = 'left';
+  xCtx.fillStyle = 'rgba(59, 130, 246, 0.9)';
+  xCtx.beginPath(); xCtx.arc(W - 100, H - 35, 5, 0, 2*Math.PI); xCtx.fill();
+  xCtx.fillStyle = '#333';
+  xCtx.fillText('Class 0', W - 90, H - 31);
+  xCtx.fillStyle = 'rgba(239, 68, 68, 0.9)';
+  xCtx.beginPath(); xCtx.arc(W - 100, H - 17, 5, 0, 2*Math.PI); xCtx.fill();
+  xCtx.fillStyle = '#333';
+  xCtx.fillText('Class 1', W - 90, H - 13);
+}
+
+// ========== Compute and draw w-space ==========
+function computeErrorSurface() {
+  errorGrid = new Array(gridRes);
+  let minE = Infinity, maxE = -Infinity;
+
+  for (let j = 0; j < gridRes; j++) {
+    errorGrid[j] = new Array(gridRes);
+    const w2 = wMax - j / (gridRes - 1) * (wMax - wMin);
+    for (let i = 0; i < gridRes; i++) {
+      const w1 = wMin + i / (gridRes - 1) * (wMax - wMin);
+      const E = crossEntropy(w1, w2, data0, data1);
+      errorGrid[j][i] = E;
+      if (E < minE) minE = E;
+      if (E > maxE) maxE = E;
+    }
+  }
+
+  // Clamp max for better color range — cap at reasonable percentile
+  const allVals = errorGrid.flat().slice().sort((a, b) => a - b);
+  const p95 = allVals[Math.floor(allVals.length * 0.95)];
+  const effectiveMax = Math.min(maxE, p95 * 1.2);
+
+  // Create image
+  errorImage = wCtx.createImageData(gridRes, gridRes);
+  for (let j = 0; j < gridRes; j++) {
+    for (let i = 0; i < gridRes; i++) {
+      const t = 1 - Math.min(1, (errorGrid[j][i] - minE) / (effectiveMax - minE + 1e-10));
+      const [r, g, b] = viridis(t);
+      const idx = (j * gridRes + i) * 4;
+      errorImage.data[idx] = r;
+      errorImage.data[idx + 1] = g;
+      errorImage.data[idx + 2] = b;
+      errorImage.data[idx + 3] = 255;
+    }
+  }
+
+  return { minE, maxE: effectiveMax };
+}
+
+function drawWSpace(hoverPixel) {
+  wCtx.clearRect(0, 0, W, H);
+
+  if (surfaceRevealed && errorImage) {
+    // Draw heatmap scaled to canvas
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = gridRes;
+    tempCanvas.height = gridRes;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.putImageData(errorImage, 0, 0);
+
+    wCtx.imageSmoothingEnabled = true;
+    wCtx.drawImage(tempCanvas, 0, 0, W, H);
+
+    // Draw contour lines
+    drawContours();
+  } else {
+    // Pure black background before reveal
+    wCtx.fillStyle = '#000';
+    wCtx.fillRect(0, 0, W, H);
+  }
+
+  // Axes
+  wCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+  wCtx.lineWidth = 1;
+  const ox = wToPixelX(0), oy = wToPixelY(0);
+  wCtx.beginPath(); wCtx.moveTo(ox, 0); wCtx.lineTo(ox, H); wCtx.stroke();
+  wCtx.beginPath(); wCtx.moveTo(0, oy); wCtx.lineTo(W, oy); wCtx.stroke();
+
+  // Axis labels
+  wCtx.fillStyle = 'rgba(255,255,255,0.7)';
+  wCtx.font = '13px -apple-system, sans-serif';
+  wCtx.textAlign = 'center';
+  wCtx.fillText('w\u2081', W - 15, oy - 8);
+  wCtx.fillText('w\u2082', ox + 14, 15);
+
+  // Tick labels
+  wCtx.font = '10px -apple-system, sans-serif';
+  for (let v = Math.ceil(wMin); v <= wMax; v++) {
+    if (v === 0) continue;
+    wCtx.fillText(v, wToPixelX(v), oy + 13);
+    wCtx.fillText(v, ox - 10, wToPixelY(v) + 4);
+  }
+
+  // Hover crosshair
+  if (hoverPixel) {
+    const [mx, my] = hoverPixel;
+    wCtx.strokeStyle = 'rgba(255,255,255,0.7)';
+    wCtx.lineWidth = 1;
+    wCtx.setLineDash([4, 4]);
+    wCtx.beginPath(); wCtx.moveTo(mx, 0); wCtx.lineTo(mx, H); wCtx.stroke();
+    wCtx.beginPath(); wCtx.moveTo(0, my); wCtx.lineTo(W, my); wCtx.stroke();
+    wCtx.setLineDash([]);
+
+    // Dot
+    wCtx.beginPath();
+    wCtx.arc(mx, my, 6, 0, 2 * Math.PI);
+    wCtx.fillStyle = '#fff';
+    wCtx.fill();
+    wCtx.strokeStyle = '#1a1a2e';
+    wCtx.lineWidth = 2;
+    wCtx.stroke();
+  }
+}
+
+// ========== Contour lines using marching squares ==========
+function drawContours() {
+  if (!errorGrid) return;
+
+  const allVals = errorGrid.flat().slice().sort((a, b) => a - b);
+  const lo = allVals[Math.floor(allVals.length * 0.05)];
+  const hi = allVals[Math.floor(allVals.length * 0.95)];
+
+  const nContours = 12;
+  const levels = [];
+  for (let k = 0; k < nContours; k++) {
+    levels.push(lo + (hi - lo) * (k + 1) / (nContours + 1));
+  }
+
+  wCtx.strokeStyle = 'rgba(255,255,255,0.45)';
+  wCtx.lineWidth = 1;
+
+  const scaleX = W / (gridRes - 1);
+  const scaleY = H / (gridRes - 1);
+
+  for (const level of levels) {
+    wCtx.beginPath();
+    for (let j = 0; j < gridRes - 1; j++) {
+      for (let i = 0; i < gridRes - 1; i++) {
+        const v00 = errorGrid[j][i];
+        const v10 = errorGrid[j][i + 1];
+        const v01 = errorGrid[j + 1][i];
+        const v11 = errorGrid[j + 1][i + 1];
+
+        const idx = ((v00 >= level) ? 8 : 0) |
+                    ((v10 >= level) ? 4 : 0) |
+                    ((v11 >= level) ? 2 : 0) |
+                    ((v01 >= level) ? 1 : 0);
+
+        if (idx === 0 || idx === 15) continue;
+
+        // Interpolation helpers
+        const lerp = (va, vb) => (level - va) / (vb - va + 1e-15);
+
+        const top    = [i + lerp(v00, v10), j];
+        const bottom = [i + lerp(v01, v11), j + 1];
+        const left   = [i, j + lerp(v00, v01)];
+        const right  = [i + 1, j + lerp(v10, v11)];
+
+        const segments = [];
+        switch (idx) {
+          case 1: case 14: segments.push([left, bottom]); break;
+          case 2: case 13: segments.push([bottom, right]); break;
+          case 3: case 12: segments.push([left, right]); break;
+          case 4: case 11: segments.push([top, right]); break;
+          case 5: segments.push([left, top], [bottom, right]); break;
+          case 6: case 9: segments.push([top, bottom]); break;
+          case 7: case 8: segments.push([left, top]); break;
+          case 10: segments.push([top, right], [left, bottom]); break;
+        }
+
+        for (const [a, b] of segments) {
+          wCtx.moveTo(a[0] * scaleX, a[1] * scaleY);
+          wCtx.lineTo(b[0] * scaleX, b[1] * scaleY);
+        }
+      }
+    }
+    wCtx.stroke();
+  }
+}
+
+// ========== Event handling ==========
+wCanvas.addEventListener('mousemove', function(e) {
+  const rect = wCanvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (W / rect.width);
+  const my = (e.clientY - rect.top) * (H / rect.height);
+
+  const w1 = pixelToW1(mx);
+  const w2 = pixelToW2(my);
+
+  const E = crossEntropy(w1, w2, data0, data1);
+  document.getElementById('w-info').textContent =
+    `w = (${w1.toFixed(2)}, ${w2.toFixed(2)})   E(w) = ${E.toFixed(3)}`;
+
+  drawWSpace([mx, my]);
+  drawXSpace([w1, w2]);
+});
+
+wCanvas.addEventListener('mouseleave', function() {
+  document.getElementById('w-info').textContent = 'Hover to explore w-space';
+  drawWSpace(null);
+  drawXSpace(null);
+});
+
+// ========== Slider updates ==========
+document.querySelectorAll('input[type="range"]').forEach(slider => {
+  const valSpan = document.getElementById(slider.id + '-val');
+  slider.addEventListener('input', () => {
+    valSpan.textContent = parseFloat(slider.value).toFixed(1);
+  });
+});
+
+// ========== Toggle surface ==========
+function toggleSurface() {
+  surfaceRevealed = document.getElementById('revealCheck').checked;
+  drawWSpace(null);
+}
+
+// ========== Resample ==========
+function resample() {
+  const params = getParams();
+
+  if (!isPosDef(params.sigma)) {
+    alert('Covariance matrix is not positive-definite.\nEnsure \u03C3\u2081\u2081\u00B7\u03C3\u2082\u2082 > \u03C3\u2081\u2082\u00B2.');
+    return;
+  }
+
+  data0 = sampleGaussian(params.mu0, params.sigma, params.n);
+  data1 = sampleGaussian(params.mu1, params.sigma, params.n);
+
+  computeErrorSurface();
+  drawWSpace(null);
+  drawXSpace(null);
+  document.getElementById('x-info').textContent =
+    `${params.n} samples per class | \u03A3 = [[${params.sigma[0][0]}, ${params.sigma[0][1]}], [${params.sigma[1][0]}, ${params.sigma[1][1]}]]`;
+}
+
+// ========== Sidebar scroll highlighting ==========
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('nav.sidebar a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 120) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+}, { passive: true });
+
+// ========== Init ==========
+resample();
+</script>
+
+</body>
+</html>
