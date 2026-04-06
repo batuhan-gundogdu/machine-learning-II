@@ -545,9 +545,9 @@ table.bp-table tr.bp-section-header td { font-family: -apple-system, sans-serif;
           <span class="val" id="lr-val">0.20</span>
         </div>
       </div>
-      <button class="action-btn" id="step-btn" onclick="advanceStep()">New Sample</button>
-      <button class="action-btn" onclick="runN(10)">Train 10 Full</button>
-      <button class="action-btn" onclick="runN(100)">Train 100 Full</button>
+      <button class="action-btn" onclick="trainFull()">Next Training Sample</button>
+      <button class="action-btn" onclick="runN(10)">Train 10 Steps</button>
+      <button class="action-btn" onclick="runN(100)">Train 100 Steps</button>
       <button class="secondary-btn" onclick="resetAll()">Reset Network</button>
       <span class="sample-indicator" id="step-counter">Step: 0</span>
     </div>
@@ -573,7 +573,11 @@ table.bp-table tr.bp-section-header td { font-family: -apple-system, sans-serif;
     <h2>Computation Log</h2>
   </div>
   <div class="card">
-    <p style="margin-bottom:0.5rem;">Press the step button to walk through <span class="op-badge op-F" style="font-size:0.7rem;">F</span> forward, <span class="op-badge op-B" style="font-size:0.7rem;">B</span> backward, and <span class="op-badge op-U" style="font-size:0.7rem;">U</span> update one stage at a time.</p>
+    <p style="margin-bottom:0.75rem;">Step through <span class="op-badge op-F" style="font-size:0.7rem;">F</span> forward, <span class="op-badge op-B" style="font-size:0.7rem;">B</span> backward, and <span class="op-badge op-U" style="font-size:0.7rem;">U</span> update one stage at a time.</p>
+    <div class="controls-row" style="margin-bottom:1rem;">
+      <button class="action-btn" id="step-btn" onclick="advanceStep()">New Sample</button>
+      <span class="sample-indicator" id="phase-label"></span>
+    </div>
     <div class="bp-table-wrap">
       <table class="bp-table" id="bp-table">
         <thead>
@@ -1261,6 +1265,29 @@ function advanceStep() {
       break;
     }
   }
+}
+
+// ========== Single full training step (for the plot buttons) ==========
+function trainFull() {
+  // Complete any in-progress step-by-step first
+  while (phase !== 'idle' && phase !== 'update') {
+    advanceStepSilent();
+  }
+  if (phase === 'update') phase = 'idle';
+
+  const x = -3 + 6 * Math.random();
+  const y = targetFn(x);
+  const result = trainStep(x, y);
+  stepCount++;
+  trainHistory.push({ x, y });
+  wTrajectory.push({ w1: w[0], w2: w[1] });
+
+  clearTable();
+  phase = 'idle';
+  setBtn(btnLabels.idle);
+  document.getElementById('step-counter').textContent = `Step: ${stepCount}`;
+  drawPlot({ x, y });
+  drawWSpace();
 }
 
 // ========== Batch Training (full cycles) ==========
