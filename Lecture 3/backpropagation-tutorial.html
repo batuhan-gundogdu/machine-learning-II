@@ -561,6 +561,11 @@ table.bp-table .op-badge {
         <h3>Function Approximation</h3>
         <canvas id="plotCanvas" width="600" height="400"></canvas>
       </div>
+      <div class="canvas-wrap">
+        <h3>Weight Space — $w_1$ vs $w_2$ (test MSE)</h3>
+        <canvas id="wCanvas" width="400" height="400"></canvas>
+        <div style="margin-top:0.4rem; font-size:0.78rem; color:var(--text-light); font-family:'SF Mono','Fira Code',monospace;" id="w-info">Error surface is computed with other weights frozen at current values</div>
+      </div>
     </div>
   </div>
 </section>
@@ -668,6 +673,7 @@ let wz = [0, 0];    // wz[0]=wz1, wz[1]=wz2
 let bz = 0;
 let stepCount = 0;
 let trainHistory = [];
+let wTrajectory = [];  // [{w1, w2}] trajectory in weight space
 
 // Fixed test set
 const testPoints = [];
@@ -931,6 +937,227 @@ function drawPlot(currentSample) {
   ctx.fillText('Neuron 2', lx + 30, ly + 58);
 }
 
+// ========== W-Space Error Surface ==========
+const wCanvas = document.getElementById('wCanvas');
+const wCtx = wCanvas.getContext('2d');
+const WS = 400;
+const wGridRes = 100;
+const wMin = -5, wMax = 5;
+
+let errorImage = null;
+let errorGrid = null;
+
+function wToPixelX(v) { return (v - wMin) / (wMax - wMin) * WS; }
+function wToPixelY(v) { return WS - (v - wMin) / (wMax - wMin) * WS; }
+
+// Viridis-like colormap (same as Lecture 2)
+function viridis(t) {
+  t = Math.max(0, Math.min(1, t));
+  const r = Math.round(255 * Math.max(0, Math.min(1, -0.0461 + t * (0.1096 + t * (4.3982 + t * (-14.019 + t * (13.228 - t * 4.156)))))));
+  const g = Math.round(255 * Math.max(0, Math.min(1, 0.0267 + t * (1.4238 + t * (-1.1443 + t * (1.5765 + t * (-2.4863 + t * 1.5478)))))));
+  const bl = Math.round(255 * Math.max(0, Math.min(1, 0.3291 + t * (1.5375 + t * (-5.3655 + t * (10.9978 + t * (-10.518 + t * 3.7762)))))));
+  return [r, g, bl];
+}
+
+// Compute test MSE for given w1, w2 with all other params at current values
+function testMSEat(w1val, w2val) {
+  let mse = 0;
+  for (const tp of testPoints) {
+    const h0 = w1val * tp.x + b[0];
+    const h1 = w2val * tp.x + b[1];
+    const a0 = Math.tanh(h0);
+    const a1 = Math.tanh(h1);
+    const yhat = wz[0] * a0 + wz[1] * a1 + bz;
+    mse += (yhat - tp.y) ** 2;
+  }
+  return mse / testPoints.length;
+}
+
+function computeErrorSurface() {
+  errorGrid = new Array(wGridRes);
+  let minE = Infinity, maxE = -Infinity;
+
+  for (let j = 0; j < wGridRes; j++) {
+    errorGrid[j] = new Array(wGridRes);
+    const w2val = wMax - j / (wGridRes - 1) * (wMax - wMin);
+    for (let i = 0; i < wGridRes; i++) {
+      const w1val = wMin + i / (wGridRes - 1) * (wMax - wMin);
+      const E = testMSEat(w1val, w2val);
+      errorGrid[j][i] = E;
+      if (E < minE) minE = E;
+      if (E > maxE) maxE = E;
+    }
+  }
+
+  // Clamp for better color range
+  const allVals = errorGrid.flat().slice().sort((a, bb) => a - bb);
+  const p95 = allVals[Math.floor(allVals.length * 0.95)];
+  const effectiveMax = Math.min(maxE, p95 * 1.2);
+
+  errorImage = wCtx.createImageData(wGridRes, wGridRes);
+  for (let j = 0; j < wGridRes; j++) {
+    for (let i = 0; i < wGridRes; i++) {
+      const t = 1 - Math.min(1, (errorGrid[j][i] - minE) / (effectiveMax - minE + 1e-10));
+      const [r, g, bl] = viridis(t);
+      const idx = (j * wGridRes + i) * 4;
+      errorImage.data[idx] = r;
+      errorImage.data[idx + 1] = g;
+      errorImage.data[idx + 2] = bl;
+      errorImage.data[idx + 3] = 255;
+    }
+  }
+}
+
+function drawContours() {
+  if (!errorGrid) return;
+  const allVals = errorGrid.flat().slice().sort((a, bb) => a - bb);
+  const lo = allVals[Math.floor(allVals.length * 0.05)];
+  const hi = allVals[Math.floor(allVals.length * 0.95)];
+
+  const nContours = 12;
+  const levels = [];
+  for (let k = 0; k < nContours; k++) {
+    levels.push(lo + (hi - lo) * (k + 1) / (nContours + 1));
+  }
+
+  wCtx.strokeStyle = 'rgba(255,255,255,0.4)';
+  wCtx.lineWidth = 1;
+
+  const scaleX = WS / (wGridRes - 1);
+  const scaleY = WS / (wGridRes - 1);
+
+  for (const level of levels) {
+    wCtx.beginPath();
+    for (let j = 0; j < wGridRes - 1; j++) {
+      for (let i = 0; i < wGridRes - 1; i++) {
+        const v00 = errorGrid[j][i];
+        const v10 = errorGrid[j][i + 1];
+        const v01 = errorGrid[j + 1][i];
+        const v11 = errorGrid[j + 1][i + 1];
+
+        const idx = ((v00 >= level) ? 8 : 0) |
+                    ((v10 >= level) ? 4 : 0) |
+                    ((v11 >= level) ? 2 : 0) |
+                    ((v01 >= level) ? 1 : 0);
+
+        if (idx === 0 || idx === 15) continue;
+
+        const lerp = (va, vb) => (level - va) / (vb - va + 1e-15);
+        const top    = [i + lerp(v00, v10), j];
+        const bottom = [i + lerp(v01, v11), j + 1];
+        const left   = [i, j + lerp(v00, v01)];
+        const right  = [i + 1, j + lerp(v10, v11)];
+
+        const segments = [];
+        switch (idx) {
+          case 1: case 14: segments.push([left, bottom]); break;
+          case 2: case 13: segments.push([bottom, right]); break;
+          case 3: case 12: segments.push([left, right]); break;
+          case 4: case 11: segments.push([top, right]); break;
+          case 5: segments.push([left, top], [bottom, right]); break;
+          case 6: case 9: segments.push([top, bottom]); break;
+          case 7: case 8: segments.push([left, top]); break;
+          case 10: segments.push([top, right], [left, bottom]); break;
+        }
+
+        for (const [a, bb] of segments) {
+          wCtx.moveTo(a[0] * scaleX, a[1] * scaleY);
+          wCtx.lineTo(bb[0] * scaleX, bb[1] * scaleY);
+        }
+      }
+    }
+    wCtx.stroke();
+  }
+}
+
+function drawWSpace() {
+  wCtx.clearRect(0, 0, WS, WS);
+
+  // Draw heatmap
+  if (errorImage) {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = wGridRes;
+    tempCanvas.height = wGridRes;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.putImageData(errorImage, 0, 0);
+    wCtx.imageSmoothingEnabled = true;
+    wCtx.drawImage(tempCanvas, 0, 0, WS, WS);
+    drawContours();
+  } else {
+    wCtx.fillStyle = '#111';
+    wCtx.fillRect(0, 0, WS, WS);
+  }
+
+  // Axes
+  wCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+  wCtx.lineWidth = 1;
+  const ox = wToPixelX(0), oy = wToPixelY(0);
+  wCtx.beginPath(); wCtx.moveTo(ox, 0); wCtx.lineTo(ox, WS); wCtx.stroke();
+  wCtx.beginPath(); wCtx.moveTo(0, oy); wCtx.lineTo(WS, oy); wCtx.stroke();
+
+  // Axis labels
+  wCtx.fillStyle = 'rgba(255,255,255,0.7)';
+  wCtx.font = '13px -apple-system, sans-serif';
+  wCtx.textAlign = 'center';
+  wCtx.fillText('w\u2081', WS - 15, oy - 8);
+  wCtx.fillText('w\u2082', ox + 14, 15);
+
+  // Tick labels
+  wCtx.font = '10px -apple-system, sans-serif';
+  for (let v = Math.ceil(wMin); v <= wMax; v++) {
+    if (v === 0) continue;
+    wCtx.fillText(v, wToPixelX(v), oy + 13);
+    wCtx.fillText(v, ox - 10, wToPixelY(v) + 4);
+  }
+
+  // Draw trajectory
+  if (wTrajectory.length > 1) {
+    wCtx.strokeStyle = 'rgba(245, 158, 11, 0.7)';
+    wCtx.lineWidth = 1.5;
+    wCtx.beginPath();
+    wCtx.moveTo(wToPixelX(wTrajectory[0].w1), wToPixelY(wTrajectory[0].w2));
+    for (let i = 1; i < wTrajectory.length; i++) {
+      wCtx.lineTo(wToPixelX(wTrajectory[i].w1), wToPixelY(wTrajectory[i].w2));
+    }
+    wCtx.stroke();
+
+    // Draw small dots at each step
+    for (let i = 0; i < wTrajectory.length - 1; i++) {
+      wCtx.beginPath();
+      wCtx.arc(wToPixelX(wTrajectory[i].w1), wToPixelY(wTrajectory[i].w2), 2, 0, 2 * Math.PI);
+      wCtx.fillStyle = 'rgba(245, 158, 11, 0.5)';
+      wCtx.fill();
+    }
+  }
+
+  // Current position marker
+  if (wTrajectory.length > 0) {
+    const cur = wTrajectory[wTrajectory.length - 1];
+    const cx = wToPixelX(cur.w1), cy = wToPixelY(cur.w2);
+
+    // Outer glow
+    wCtx.beginPath();
+    wCtx.arc(cx, cy, 8, 0, 2 * Math.PI);
+    wCtx.fillStyle = 'rgba(245, 158, 11, 0.3)';
+    wCtx.fill();
+
+    // Inner dot
+    wCtx.beginPath();
+    wCtx.arc(cx, cy, 5, 0, 2 * Math.PI);
+    wCtx.fillStyle = '#F59E0B';
+    wCtx.fill();
+    wCtx.strokeStyle = '#fff';
+    wCtx.lineWidth = 1.5;
+    wCtx.stroke();
+
+    // Label
+    wCtx.fillStyle = '#fff';
+    wCtx.font = 'bold 11px SF Mono, Fira Code, monospace';
+    wCtx.textAlign = 'left';
+    wCtx.fillText(`(${cur.w1.toFixed(2)}, ${cur.w2.toFixed(2)})`, cx + 10, cy - 5);
+  }
+}
+
 // ========== Update Table ==========
 function updateTable(result) {
   const fmt = (v) => v.toFixed(4);
@@ -1049,10 +1276,13 @@ function nextSample() {
   const result = trainStep(x, y);
   stepCount++;
   trainHistory.push({ x, y });
+  wTrajectory.push({ w1: w[0], w2: w[1] });
 
   updateTable(result);
   updateStats(result);
   drawPlot({ x, y });
+  computeErrorSurface();
+  drawWSpace();
 }
 
 function runN(n) {
@@ -1062,18 +1292,22 @@ function runN(n) {
     const result = trainStep(x, y);
     stepCount++;
     trainHistory.push({ x, y });
+    wTrajectory.push({ w1: w[0], w2: w[1] });
     if (i === n - 1) {
       updateTable(result);
       updateStats(result);
       drawPlot({ x, y });
     }
   }
+  computeErrorSurface();
+  drawWSpace();
 }
 
 function resetAll() {
   initWeights();
   stepCount = 0;
   trainHistory = [];
+  wTrajectory = [{ w1: w[0], w2: w[1] }];
   document.getElementById('bp-body').innerHTML =
     '<tr><td colspan="10" style="color:#999; padding:1.5rem;">Press "Next Training Sample" to begin</td></tr>';
   document.getElementById('bp-body-output').innerHTML =
@@ -1082,6 +1316,8 @@ function resetAll() {
   document.getElementById('test-error').textContent = computeTestError().toFixed(6);
   document.getElementById('step-counter').textContent = 'Step: 0';
   drawPlot(null);
+  computeErrorSurface();
+  drawWSpace();
 }
 
 // ========== LR slider ==========
@@ -1105,8 +1341,11 @@ window.addEventListener('scroll', () => {
 
 // ========== Init ==========
 initWeights();
+wTrajectory = [{ w1: w[0], w2: w[1] }];
 document.getElementById('test-error').textContent = computeTestError().toFixed(6);
 drawPlot(null);
+computeErrorSurface();
+drawWSpace();
 </script>
 
 </body>
