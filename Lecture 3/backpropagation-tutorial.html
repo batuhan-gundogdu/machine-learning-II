@@ -383,12 +383,19 @@ table.bp-table .op-badge {
 .op-B { background: var(--accent-5); }
 .op-U { background: var(--accent-2); }
 
-.highlight-new { animation: flashGreen 1.2s ease-out; }
+.highlight-new { animation: flashHighlight 1.5s ease-out; }
 
-@keyframes flashGreen {
-  0% { background-color: rgba(16, 185, 129, 0.3); }
+@keyframes flashHighlight {
+  0% { background-color: rgba(245, 158, 11, 0.35); }
   100% { background-color: transparent; }
 }
+
+table.bp-table td.revealed-f { color: var(--accent-1); font-weight: 600; }
+table.bp-table td.revealed-b { color: var(--accent-5); font-weight: 600; }
+table.bp-table td.revealed-u { color: var(--accent-2); font-weight: 600; }
+table.bp-table td.revealed { font-weight: 600; }
+
+table.bp-table tr.bp-section-header td { font-family: -apple-system, sans-serif; }
 
 /* Sample indicator */
 .sample-indicator {
@@ -538,22 +545,11 @@ table.bp-table .op-badge {
           <span class="val" id="lr-val">0.20</span>
         </div>
       </div>
-      <button class="action-btn" id="next-btn" onclick="nextSample()">Next Training Sample</button>
-      <button class="action-btn" onclick="runN(10)">Train 10 Steps</button>
-      <button class="action-btn" onclick="runN(100)">Train 100 Steps</button>
+      <button class="action-btn" id="step-btn" onclick="advanceStep()">New Sample</button>
+      <button class="action-btn" onclick="runN(10)">Train 10 Full</button>
+      <button class="action-btn" onclick="runN(100)">Train 100 Full</button>
       <button class="secondary-btn" onclick="resetAll()">Reset Network</button>
       <span class="sample-indicator" id="step-counter">Step: 0</span>
-    </div>
-
-    <div class="stats-bar">
-      <div class="stat-item">
-        <div class="stat-label">Current Sample Loss</div>
-        <div class="stat-value" id="current-loss">—</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-label">Avg Test Error (MSE)</div>
-        <div class="stat-value" id="test-error">—</div>
-      </div>
     </div>
 
     <div class="canvas-container">
@@ -577,49 +573,48 @@ table.bp-table .op-badge {
     <h2>Computation Log</h2>
   </div>
   <div class="card">
-    <p style="margin-bottom:0.5rem;">Each row below shows one operation from the most recent training step. Neuron 1 values in <span style="color:var(--neuron1); font-weight:700;">blue</span>, Neuron 2 in <span style="color:var(--neuron2); font-weight:700;">purple</span>.</p>
+    <p style="margin-bottom:0.5rem;">Press the step button to walk through <span class="op-badge op-F" style="font-size:0.7rem;">F</span> forward, <span class="op-badge op-B" style="font-size:0.7rem;">B</span> backward, and <span class="op-badge op-U" style="font-size:0.7rem;">U</span> update one stage at a time.</p>
     <div class="bp-table-wrap">
       <table class="bp-table" id="bp-table">
         <thead>
           <tr>
-            <th rowspan="2">Op</th>
-            <th rowspan="2">Description</th>
-            <th rowspan="2">$x$</th>
-            <th rowspan="2">$y$</th>
-            <th colspan="2" style="background:#2563EB;">Neuron 1</th>
-            <th colspan="2" style="background:#7C3AED;">Neuron 2</th>
-            <th rowspan="2">$\hat{y}$</th>
-            <th rowspan="2">$L$</th>
-          </tr>
-          <tr>
-            <th style="background:#2563EB;">$h_1 / w_1 / \nabla w_1$</th>
-            <th style="background:#2563EB;">$a_1 / b_1 / \nabla b_1$</th>
-            <th style="background:#7C3AED;">$h_2 / w_2 / \nabla w_2$</th>
-            <th style="background:#7C3AED;">$a_2 / b_2 / \nabla b_2$</th>
+            <th style="width:2.5rem;">Op</th>
+            <th style="text-align:left;">Quantity</th>
+            <th>Value</th>
+            <th>$\partial L / \partial$</th>
           </tr>
         </thead>
         <tbody id="bp-body">
-          <tr><td colspan="10" style="color:#999; padding:1.5rem;">Press "Next Training Sample" to begin</td></tr>
-        </tbody>
-      </table>
-    </div>
+          <!-- Input -->
+          <tr class="bp-section-header"><td colspan="4" style="background:#f1f5f9; font-weight:700; font-size:0.78rem; text-align:left; color:var(--text); padding:0.3rem 0.75rem;">Input</td></tr>
+          <tr id="row-x"><td id="op-x">—</td><td style="text-align:left;">$x$</td><td id="val-x">—</td><td>—</td></tr>
+          <tr id="row-y"><td id="op-y">—</td><td style="text-align:left;">$y$ (target)</td><td id="val-y">—</td><td>—</td></tr>
 
-    <div class="bp-table-wrap" style="margin-top:1rem;">
-      <table class="bp-table" id="bp-table-output">
-        <thead>
-          <tr>
-            <th>Op</th>
-            <th>Description</th>
-            <th>$w_{z,1}$</th>
-            <th>$w_{z,2}$</th>
-            <th>$b_z$</th>
-            <th>$\nabla w_{z,1}$</th>
-            <th>$\nabla w_{z,2}$</th>
-            <th>$\nabla b_z$</th>
-          </tr>
-        </thead>
-        <tbody id="bp-body-output">
-          <tr><td colspan="8" style="color:#999; padding:1rem;">—</td></tr>
+          <!-- Neuron 1 -->
+          <tr class="bp-section-header"><td colspan="4" style="background:rgba(59,130,246,0.08); font-weight:700; font-size:0.78rem; text-align:left; color:var(--neuron1); padding:0.3rem 0.75rem;">Hidden Neuron 1</td></tr>
+          <tr id="row-w1"><td id="op-w1">—</td><td style="text-align:left;">$w_1$</td><td id="val-w1">—</td><td id="grad-w1">—</td></tr>
+          <tr id="row-b1"><td id="op-b1">—</td><td style="text-align:left;">$b_1$</td><td id="val-b1">—</td><td id="grad-b1">—</td></tr>
+          <tr id="row-h1"><td id="op-h1">—</td><td style="text-align:left;">$h_1 = w_1 x + b_1$</td><td id="val-h1">—</td><td id="grad-h1">—</td></tr>
+          <tr id="row-a1"><td id="op-a1">—</td><td style="text-align:left;">$a_1 = \tanh(h_1)$</td><td id="val-a1">—</td><td id="grad-a1">—</td></tr>
+
+          <!-- Neuron 2 -->
+          <tr class="bp-section-header"><td colspan="4" style="background:rgba(139,92,246,0.08); font-weight:700; font-size:0.78rem; text-align:left; color:var(--neuron2); padding:0.3rem 0.75rem;">Hidden Neuron 2</td></tr>
+          <tr id="row-w2"><td id="op-w2">—</td><td style="text-align:left;">$w_2$</td><td id="val-w2">—</td><td id="grad-w2">—</td></tr>
+          <tr id="row-b2"><td id="op-b2">—</td><td style="text-align:left;">$b_2$</td><td id="val-b2">—</td><td id="grad-b2">—</td></tr>
+          <tr id="row-h2"><td id="op-h2">—</td><td style="text-align:left;">$h_2 = w_2 x + b_2$</td><td id="val-h2">—</td><td id="grad-h2">—</td></tr>
+          <tr id="row-a2"><td id="op-a2">—</td><td style="text-align:left;">$a_2 = \tanh(h_2)$</td><td id="val-a2">—</td><td id="grad-a2">—</td></tr>
+
+          <!-- Output -->
+          <tr class="bp-section-header"><td colspan="4" style="background:rgba(16,185,129,0.08); font-weight:700; font-size:0.78rem; text-align:left; color:var(--accent-2); padding:0.3rem 0.75rem;">Output Layer</td></tr>
+          <tr id="row-wz1"><td id="op-wz1">—</td><td style="text-align:left;">$w_{z,1}$</td><td id="val-wz1">—</td><td id="grad-wz1">—</td></tr>
+          <tr id="row-wz2"><td id="op-wz2">—</td><td style="text-align:left;">$w_{z,2}$</td><td id="val-wz2">—</td><td id="grad-wz2">—</td></tr>
+          <tr id="row-bz"><td id="op-bz">—</td><td style="text-align:left;">$b_z$</td><td id="val-bz">—</td><td id="grad-bz">—</td></tr>
+          <tr id="row-yhat"><td id="op-yhat">—</td><td style="text-align:left;">$\hat{y} = w_{z,1} a_1 + w_{z,2} a_2 + b_z$</td><td id="val-yhat">—</td><td id="grad-yhat">—</td></tr>
+
+          <!-- Loss -->
+          <tr class="bp-section-header"><td colspan="4" style="background:#f1f5f9; font-weight:700; font-size:0.78rem; text-align:left; color:var(--text); padding:0.3rem 0.75rem;">Error</td></tr>
+          <tr id="row-loss"><td id="op-loss">—</td><td style="text-align:left;">$L = \tfrac{1}{2}(\hat{y} - y)^2$</td><td id="val-loss">—</td><td>—</td></tr>
+          <tr id="row-test"><td id="op-test">—</td><td style="text-align:left;">Test MSE (all test points)</td><td id="val-test">—</td><td>—</td></tr>
         </tbody>
       </table>
     </div>
@@ -1069,133 +1064,213 @@ function drawWSpace() {
   }
 }
 
-// ========== Update Table ==========
-function updateTable(result) {
-  const fmt = (v) => v.toFixed(4);
-  const fmts = (v) => v >= 0 ? '+' + v.toFixed(4) : v.toFixed(4);
+// ========== Step-by-Step State Machine ==========
+// Phases: idle → sample → fwd1 → fwd2 → fwd_out → bwd_out → bwd_hidden → update → (back to idle)
+let phase = 'idle';
+let cur = {}; // current step's computed values
 
-  // Hidden layer table
-  const tbody = document.getElementById('bp-body');
-  tbody.innerHTML = '';
+const fmt = (v) => v.toFixed(4);
+const fmts = (v) => v >= 0 ? '+' + v.toFixed(4) : v.toFixed(4);
 
-  // Forward row
-  const fRow = document.createElement('tr');
-  fRow.className = 'forward-row highlight-new';
-  fRow.innerHTML = `
-    <td><span class="op-badge op-F">F</span></td>
-    <td style="text-align:left;">Forward pass</td>
-    <td>${fmt(result.x)}</td>
-    <td>${fmt(result.y)}</td>
-    <td style="color:var(--neuron1);font-weight:600;">h₁=${fmt(result.h[0])}</td>
-    <td style="color:var(--neuron1);font-weight:600;">a₁=${fmt(result.a[0])}</td>
-    <td style="color:var(--neuron2);font-weight:600;">h₂=${fmt(result.h[1])}</td>
-    <td style="color:var(--neuron2);font-weight:600;">a₂=${fmt(result.a[1])}</td>
-    <td>${fmt(result.yhat)}</td>
-    <td>${fmt(result.loss)}</td>
-  `;
-  tbody.appendChild(fRow);
+const btnLabels = {
+  idle:       'New Sample',
+  sample:     'Forward: Neuron 1',
+  fwd1:       'Forward: Neuron 2',
+  fwd2:       'Forward: Output',
+  fwd_out:    'Backward: Output',
+  bwd_out:    'Backward: Hidden',
+  bwd_hidden: 'Update (SGD)',
+  update:     'New Sample'
+};
 
-  // Backward row
-  const bRow = document.createElement('tr');
-  bRow.className = 'backward-row highlight-new';
-  bRow.innerHTML = `
-    <td><span class="op-badge op-B">B</span></td>
-    <td style="text-align:left;">Backward pass</td>
-    <td>${fmt(result.x)}</td>
-    <td>${fmt(result.y)}</td>
-    <td style="color:var(--neuron1);font-weight:600;">∂L/∂w₁=${fmts(result.dL_dw[0])}</td>
-    <td style="color:var(--neuron1);font-weight:600;">∂L/∂b₁=${fmts(result.dL_db[0])}</td>
-    <td style="color:var(--neuron2);font-weight:600;">∂L/∂w₂=${fmts(result.dL_dw[1])}</td>
-    <td style="color:var(--neuron2);font-weight:600;">∂L/∂b₂=${fmts(result.dL_db[1])}</td>
-    <td>∂L/∂ŷ=${fmts(result.yhat - result.y)}</td>
-    <td>${fmt(result.loss)}</td>
-  `;
-  tbody.appendChild(bRow);
-
-  // Update row
-  const uRow = document.createElement('tr');
-  uRow.className = 'update-row highlight-new';
-  uRow.innerHTML = `
-    <td><span class="op-badge op-U">U</span></td>
-    <td style="text-align:left;">Weight update</td>
-    <td>${fmt(result.x)}</td>
-    <td>${fmt(result.y)}</td>
-    <td style="color:var(--neuron1);font-weight:600;">w₁: ${fmt(result.old.w[0])}→${fmt(result.newW.w[0])}</td>
-    <td style="color:var(--neuron1);font-weight:600;">b₁: ${fmt(result.old.b[0])}→${fmt(result.newW.b[0])}</td>
-    <td style="color:var(--neuron2);font-weight:600;">w₂: ${fmt(result.old.w[1])}→${fmt(result.newW.w[1])}</td>
-    <td style="color:var(--neuron2);font-weight:600;">b₂: ${fmt(result.old.b[1])}→${fmt(result.newW.b[1])}</td>
-    <td>—</td>
-    <td>—</td>
-  `;
-  tbody.appendChild(uRow);
-
-  // Output layer table
-  const tbody2 = document.getElementById('bp-body-output');
-  tbody2.innerHTML = '';
-
-  const fRow2 = document.createElement('tr');
-  fRow2.className = 'forward-row highlight-new';
-  fRow2.innerHTML = `
-    <td><span class="op-badge op-F">F</span></td>
-    <td style="text-align:left;">Values</td>
-    <td style="color:var(--neuron1);font-weight:600;">${fmt(result.old.wz[0])}</td>
-    <td style="color:var(--neuron2);font-weight:600;">${fmt(result.old.wz[1])}</td>
-    <td>${fmt(result.old.bz)}</td>
-    <td>—</td><td>—</td><td>—</td>
-  `;
-  tbody2.appendChild(fRow2);
-
-  const bRow2 = document.createElement('tr');
-  bRow2.className = 'backward-row highlight-new';
-  bRow2.innerHTML = `
-    <td><span class="op-badge op-B">B</span></td>
-    <td style="text-align:left;">Gradients</td>
-    <td>—</td><td>—</td><td>—</td>
-    <td style="color:var(--neuron1);font-weight:600;">${fmts(result.dL_dwz[0])}</td>
-    <td style="color:var(--neuron2);font-weight:600;">${fmts(result.dL_dwz[1])}</td>
-    <td>${fmts(result.dL_dbz)}</td>
-  `;
-  tbody2.appendChild(bRow2);
-
-  const uRow2 = document.createElement('tr');
-  uRow2.className = 'update-row highlight-new';
-  uRow2.innerHTML = `
-    <td><span class="op-badge op-U">U</span></td>
-    <td style="text-align:left;">Updated</td>
-    <td style="color:var(--neuron1);font-weight:600;">${fmt(result.newW.wz[0])}</td>
-    <td style="color:var(--neuron2);font-weight:600;">${fmt(result.newW.wz[1])}</td>
-    <td>${fmt(result.newW.bz)}</td>
-    <td style="color:var(--neuron1);font-weight:600;">${fmts(result.dL_dwz[0])}</td>
-    <td style="color:var(--neuron2);font-weight:600;">${fmts(result.dL_dwz[1])}</td>
-    <td>${fmts(result.dL_dbz)}</td>
-  `;
-  tbody2.appendChild(uRow2);
+function setBtn(label) {
+  document.getElementById('step-btn').textContent = label;
 }
 
-// ========== Update Stats ==========
-function updateStats(result) {
-  document.getElementById('current-loss').textContent = result.loss.toFixed(6);
-  document.getElementById('test-error').textContent = computeTestError().toFixed(6);
-  document.getElementById('step-counter').textContent = `Step: ${stepCount}`;
+function setCell(id, value, cls) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = value;
+  if (cls) el.className = cls;
+  // flash the row
+  el.parentElement.classList.remove('highlight-new');
+  void el.parentElement.offsetWidth; // reflow
+  el.parentElement.classList.add('highlight-new');
 }
 
-// ========== Actions ==========
-function nextSample() {
-  const x = -3 + 6 * Math.random();
-  const y = targetFn(x);
-
-  const result = trainStep(x, y);
-  stepCount++;
-  trainHistory.push({ x, y });
-  wTrajectory.push({ w1: w[0], w2: w[1] });
-
-  updateTable(result);
-  updateStats(result);
-  drawPlot({ x, y });
-  drawWSpace();
+function setOp(id, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = `<span class="op-badge op-${type}">${type}</span>`;
 }
 
+function clearTable() {
+  const ids = ['x','y','w1','b1','h1','a1','w2','b2','h2','a2','wz1','wz2','bz','yhat','loss','test'];
+  for (const id of ids) {
+    const v = document.getElementById('val-' + id);
+    if (v) v.textContent = '—';
+    if (v) v.className = '';
+    const g = document.getElementById('grad-' + id);
+    if (g) g.textContent = '—';
+    if (g) g.className = '';
+    const o = document.getElementById('op-' + id);
+    if (o) { o.textContent = '—'; o.className = ''; }
+  }
+}
+
+function advanceStep() {
+  switch (phase) {
+    case 'idle':
+    case 'update': {
+      // Generate new sample
+      clearTable();
+      cur = {};
+      cur.x = -3 + 6 * Math.random();
+      cur.y = targetFn(cur.x);
+
+      setCell('val-x', fmt(cur.x), 'revealed');
+      setCell('val-y', fmt(cur.y), 'revealed');
+
+      drawPlot({ x: cur.x, y: cur.y });
+      phase = 'sample';
+      setBtn(btnLabels.sample);
+      break;
+    }
+
+    case 'sample': {
+      // Forward neuron 1
+      cur.h0 = w[0] * cur.x + b[0];
+      cur.a0 = Math.tanh(cur.h0);
+
+      setOp('op-w1', 'F'); setCell('val-w1', fmt(w[0]), 'revealed-f');
+      setOp('op-b1', 'F'); setCell('val-b1', fmt(b[0]), 'revealed-f');
+      setOp('op-h1', 'F'); setCell('val-h1', fmt(cur.h0), 'revealed-f');
+      setOp('op-a1', 'F'); setCell('val-a1', fmt(cur.a0), 'revealed-f');
+
+      phase = 'fwd1';
+      setBtn(btnLabels.fwd1);
+      break;
+    }
+
+    case 'fwd1': {
+      // Forward neuron 2
+      cur.h1 = w[1] * cur.x + b[1];
+      cur.a1 = Math.tanh(cur.h1);
+
+      setOp('op-w2', 'F'); setCell('val-w2', fmt(w[1]), 'revealed-f');
+      setOp('op-b2', 'F'); setCell('val-b2', fmt(b[1]), 'revealed-f');
+      setOp('op-h2', 'F'); setCell('val-h2', fmt(cur.h1), 'revealed-f');
+      setOp('op-a2', 'F'); setCell('val-a2', fmt(cur.a1), 'revealed-f');
+
+      phase = 'fwd2';
+      setBtn(btnLabels.fwd2);
+      break;
+    }
+
+    case 'fwd2': {
+      // Forward output
+      cur.yhat = wz[0] * cur.a0 + wz[1] * cur.a1 + bz;
+      cur.loss = 0.5 * (cur.yhat - cur.y) ** 2;
+
+      setOp('op-wz1', 'F'); setCell('val-wz1', fmt(wz[0]), 'revealed-f');
+      setOp('op-wz2', 'F'); setCell('val-wz2', fmt(wz[1]), 'revealed-f');
+      setOp('op-bz', 'F');  setCell('val-bz', fmt(bz), 'revealed-f');
+      setOp('op-yhat', 'F'); setCell('val-yhat', fmt(cur.yhat), 'revealed-f');
+      setOp('op-loss', 'F'); setCell('val-loss', fmt(cur.loss), 'revealed-f');
+
+      phase = 'fwd_out';
+      setBtn(btnLabels.fwd_out);
+      break;
+    }
+
+    case 'fwd_out': {
+      // Backward output
+      cur.dL_dyhat = cur.yhat - cur.y;
+      cur.dL_dwz = [cur.dL_dyhat * cur.a0, cur.dL_dyhat * cur.a1];
+      cur.dL_dbz = cur.dL_dyhat;
+
+      setOp('op-yhat', 'B'); setCell('grad-yhat', fmts(cur.dL_dyhat), 'revealed-b');
+      setOp('op-wz1', 'B');  setCell('grad-wz1', fmts(cur.dL_dwz[0]), 'revealed-b');
+      setOp('op-wz2', 'B');  setCell('grad-wz2', fmts(cur.dL_dwz[1]), 'revealed-b');
+      setOp('op-bz', 'B');   setCell('grad-bz', fmts(cur.dL_dbz), 'revealed-b');
+
+      phase = 'bwd_out';
+      setBtn(btnLabels.bwd_out);
+      break;
+    }
+
+    case 'bwd_out': {
+      // Backward hidden (both neurons)
+      cur.dL_da = [cur.dL_dyhat * wz[0], cur.dL_dyhat * wz[1]];
+      cur.dL_dh = [
+        cur.dL_da[0] * (1 - cur.a0 * cur.a0),
+        cur.dL_da[1] * (1 - cur.a1 * cur.a1)
+      ];
+      cur.dL_dw = [cur.dL_dh[0] * cur.x, cur.dL_dh[1] * cur.x];
+      cur.dL_db = [cur.dL_dh[0], cur.dL_dh[1]];
+
+      setOp('op-a1', 'B'); setCell('grad-a1', fmts(cur.dL_da[0]), 'revealed-b');
+      setOp('op-h1', 'B'); setCell('grad-h1', fmts(cur.dL_dh[0]), 'revealed-b');
+      setOp('op-w1', 'B'); setCell('grad-w1', fmts(cur.dL_dw[0]), 'revealed-b');
+      setOp('op-b1', 'B'); setCell('grad-b1', fmts(cur.dL_db[0]), 'revealed-b');
+
+      setOp('op-a2', 'B'); setCell('grad-a2', fmts(cur.dL_da[1]), 'revealed-b');
+      setOp('op-h2', 'B'); setCell('grad-h2', fmts(cur.dL_dh[1]), 'revealed-b');
+      setOp('op-w2', 'B'); setCell('grad-w2', fmts(cur.dL_dw[1]), 'revealed-b');
+      setOp('op-b2', 'B'); setCell('grad-b2', fmts(cur.dL_db[1]), 'revealed-b');
+
+      phase = 'bwd_hidden';
+      setBtn(btnLabels.bwd_hidden);
+      break;
+    }
+
+    case 'bwd_hidden': {
+      // SGD update
+      const lr = getLR();
+      w[0]  -= lr * cur.dL_dw[0];
+      w[1]  -= lr * cur.dL_dw[1];
+      b[0]  -= lr * cur.dL_db[0];
+      b[1]  -= lr * cur.dL_db[1];
+      wz[0] -= lr * cur.dL_dwz[0];
+      wz[1] -= lr * cur.dL_dwz[1];
+      bz    -= lr * cur.dL_dbz;
+
+      // Show updated weights
+      setOp('op-w1', 'U');  setCell('val-w1', fmt(w[0]), 'revealed-u');
+      setOp('op-b1', 'U');  setCell('val-b1', fmt(b[0]), 'revealed-u');
+      setOp('op-w2', 'U');  setCell('val-w2', fmt(w[1]), 'revealed-u');
+      setOp('op-b2', 'U');  setCell('val-b2', fmt(b[1]), 'revealed-u');
+      setOp('op-wz1', 'U'); setCell('val-wz1', fmt(wz[0]), 'revealed-u');
+      setOp('op-wz2', 'U'); setCell('val-wz2', fmt(wz[1]), 'revealed-u');
+      setOp('op-bz', 'U');  setCell('val-bz', fmt(bz), 'revealed-u');
+
+      // Test error
+      const testMSE = computeTestError();
+      setOp('op-test', 'U'); setCell('val-test', testMSE.toFixed(6), 'revealed-u');
+
+      stepCount++;
+      trainHistory.push({ x: cur.x, y: cur.y });
+      wTrajectory.push({ w1: w[0], w2: w[1] });
+
+      document.getElementById('step-counter').textContent = `Step: ${stepCount}`;
+      drawPlot({ x: cur.x, y: cur.y });
+      drawWSpace();
+
+      phase = 'update';
+      setBtn(btnLabels.update);
+      break;
+    }
+  }
+}
+
+// ========== Batch Training (full cycles) ==========
 function runN(n) {
+  // Complete any in-progress step first
+  while (phase !== 'idle' && phase !== 'update') {
+    advanceStepSilent();
+  }
+  if (phase === 'update') phase = 'idle';
+
   for (let i = 0; i < n; i++) {
     const x = -3 + 6 * Math.random();
     const y = targetFn(x);
@@ -1203,13 +1278,63 @@ function runN(n) {
     stepCount++;
     trainHistory.push({ x, y });
     wTrajectory.push({ w1: w[0], w2: w[1] });
-    if (i === n - 1) {
-      updateTable(result);
-      updateStats(result);
-      drawPlot({ x, y });
+  }
+
+  // Show final state in table
+  clearTable();
+  phase = 'idle';
+  setBtn(btnLabels.idle);
+  document.getElementById('step-counter').textContent = `Step: ${stepCount}`;
+  drawPlot(null);
+  drawWSpace();
+}
+
+// Silent advance for completing in-progress steps during batch
+function advanceStepSilent() {
+  // Mimic the state transitions without DOM updates
+  switch (phase) {
+    case 'idle': case 'update': {
+      cur.x = -3 + 6 * Math.random();
+      cur.y = targetFn(cur.x);
+      phase = 'sample'; break;
+    }
+    case 'sample': {
+      cur.h0 = w[0] * cur.x + b[0]; cur.a0 = Math.tanh(cur.h0);
+      phase = 'fwd1'; break;
+    }
+    case 'fwd1': {
+      cur.h1 = w[1] * cur.x + b[1]; cur.a1 = Math.tanh(cur.h1);
+      phase = 'fwd2'; break;
+    }
+    case 'fwd2': {
+      cur.yhat = wz[0] * cur.a0 + wz[1] * cur.a1 + bz;
+      cur.loss = 0.5 * (cur.yhat - cur.y) ** 2;
+      phase = 'fwd_out'; break;
+    }
+    case 'fwd_out': {
+      cur.dL_dyhat = cur.yhat - cur.y;
+      cur.dL_dwz = [cur.dL_dyhat * cur.a0, cur.dL_dyhat * cur.a1];
+      cur.dL_dbz = cur.dL_dyhat;
+      phase = 'bwd_out'; break;
+    }
+    case 'bwd_out': {
+      cur.dL_da = [cur.dL_dyhat * wz[0], cur.dL_dyhat * wz[1]];
+      cur.dL_dh = [cur.dL_da[0] * (1 - cur.a0*cur.a0), cur.dL_da[1] * (1 - cur.a1*cur.a1)];
+      cur.dL_dw = [cur.dL_dh[0] * cur.x, cur.dL_dh[1] * cur.x];
+      cur.dL_db = [cur.dL_dh[0], cur.dL_dh[1]];
+      phase = 'bwd_hidden'; break;
+    }
+    case 'bwd_hidden': {
+      const lr = getLR();
+      w[0] -= lr * cur.dL_dw[0]; w[1] -= lr * cur.dL_dw[1];
+      b[0] -= lr * cur.dL_db[0]; b[1] -= lr * cur.dL_db[1];
+      wz[0] -= lr * cur.dL_dwz[0]; wz[1] -= lr * cur.dL_dwz[1];
+      bz -= lr * cur.dL_dbz;
+      stepCount++; trainHistory.push({x: cur.x, y: cur.y});
+      wTrajectory.push({ w1: w[0], w2: w[1] });
+      phase = 'update'; break;
     }
   }
-  drawWSpace();
 }
 
 function resetAll() {
@@ -1217,12 +1342,10 @@ function resetAll() {
   stepCount = 0;
   trainHistory = [];
   wTrajectory = [{ w1: w[0], w2: w[1] }];
-  document.getElementById('bp-body').innerHTML =
-    '<tr><td colspan="10" style="color:#999; padding:1.5rem;">Press "Next Training Sample" to begin</td></tr>';
-  document.getElementById('bp-body-output').innerHTML =
-    '<tr><td colspan="8" style="color:#999; padding:1rem;">—</td></tr>';
-  document.getElementById('current-loss').textContent = '—';
-  document.getElementById('test-error').textContent = computeTestError().toFixed(6);
+  phase = 'idle';
+  cur = {};
+  clearTable();
+  setBtn(btnLabels.idle);
   document.getElementById('step-counter').textContent = 'Step: 0';
   drawPlot(null);
   drawWSpace();
@@ -1250,9 +1373,9 @@ window.addEventListener('scroll', () => {
 // ========== Init ==========
 initWeights();
 wTrajectory = [{ w1: w[0], w2: w[1] }];
-document.getElementById('test-error').textContent = computeTestError().toFixed(6);
+phase = 'idle';
+setBtn(btnLabels.idle);
 drawPlot(null);
-computeErrorSurface();
 drawWSpace();
 </script>
 
