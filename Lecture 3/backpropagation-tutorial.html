@@ -394,6 +394,7 @@ table.bp-table td.revealed-f { color: var(--accent-1); font-weight: 600; }
 table.bp-table td.revealed-b { color: var(--accent-5); font-weight: 600; }
 table.bp-table td.revealed-u { color: var(--accent-2); font-weight: 600; }
 table.bp-table td.revealed { font-weight: 600; }
+table.bp-table td.revealed-carry { color: #999; font-weight: 400; }
 
 table.bp-table tr.bp-section-header td { font-family: -apple-system, sans-serif; }
 
@@ -1134,6 +1135,15 @@ function advanceStep() {
 
       setCell('val-x', fmt(cur.x), 'revealed');
       setCell('val-y', fmt(cur.y), 'revealed');
+
+      // Show current weights so students see they carried forward from the last update
+      setCell('val-w1', fmt(w[0]), 'revealed-carry');
+      setCell('val-b1', fmt(b[0]), 'revealed-carry');
+      setCell('val-w2', fmt(w[1]), 'revealed-carry');
+      setCell('val-b2', fmt(b[1]), 'revealed-carry');
+      setCell('val-wz1', fmt(wz[0]), 'revealed-carry');
+      setCell('val-wz2', fmt(wz[1]), 'revealed-carry');
+      setCell('val-bz', fmt(bz), 'revealed-carry');
 
       drawPlot({ x: cur.x, y: cur.y });
       phase = 'sample';
