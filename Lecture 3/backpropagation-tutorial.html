@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture-3: Backpropagation in Deep Neural Networks — ML II</title>
+<script>
+MathJax = { tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+:root {
+  --bg: #f8f9fa;
+  --text: #1a1a2e;
+  --text-light: #555;
+  --card-bg: #fff;
+  --sidebar-bg: #800000;
+  --sidebar-text: #ccc;
+  --sidebar-active: #fff;
+  --accent-1: #3B82F6;
+  --accent-2: #10B981;
+  --accent-3: #8B5CF6;
+  --accent-4: #F59E0B;
+  --accent-5: #EF4444;
+  --border: #e2e8f0;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  display: flex;
+}
+
+/* Sidebar */
+nav.sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: 260px;
+  height: 100vh;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  padding: 2rem 0;
+  overflow-y: auto;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+nav.sidebar .logo {
+  padding: 0 1.5rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 1rem;
+}
+
+nav.sidebar .logo h2 {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+nav.sidebar .logo p {
+  font-size: 0.8rem;
+  opacity: 1;
+  color: #fff;
+  margin-top: 0.25rem;
+}
+
+nav.sidebar ul {
+  list-style: none;
+  flex: 1;
+}
+
+nav.sidebar li a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+
+nav.sidebar li a:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.05);
+}
+
+nav.sidebar li a.active {
+  color: var(--sidebar-active);
+  border-left-color: var(--accent-1);
+  background: rgba(255,255,255,0.08);
+}
+
+nav.sidebar li a .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bg-accent-1 { background: var(--accent-1); }
+.bg-accent-2 { background: var(--accent-2); }
+.bg-accent-3 { background: var(--accent-3); }
+.bg-accent-4 { background: var(--accent-4); }
+.bg-accent-5 { background: var(--accent-5); }
+
+/* Main content */
+main {
+  margin-left: 260px;
+  flex: 1;
+  min-height: 100vh;
+}
+
+header.hero {
+  background: linear-gradient(135deg, var(--sidebar-bg) 0%, #2d2d5e 100%);
+  color: #fff;
+  padding: 5rem 3rem 4rem;
+}
+
+header.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.75rem;
+}
+
+header.hero p {
+  font-size: 1.15rem;
+  opacity: 1;
+  color: #fff;
+  max-width: 600px;
+}
+
+/* Sections */
+section {
+  padding: 3rem 3rem 1rem;
+  max-width: 1100px;
+}
+
+section#interactive {
+  max-width: none;
+}
+
+section .section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+section .section-number {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+section h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+p, .explanation {
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: var(--text-light);
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Math */
+.math-block {
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin: 1rem 0;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.88rem;
+  overflow-x: auto;
+}
+
+/* Controls */
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.control-group label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.control-group .control-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.control-group input[type="range"] {
+  flex: 1;
+  accent-color: var(--sidebar-bg);
+}
+
+.control-group .val {
+  font-size: 0.8rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--text-light);
+  min-width: 3rem;
+  text-align: right;
+}
+
+button.action-btn {
+  padding: 0.6rem 1.4rem;
+  background: var(--sidebar-bg);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button.action-btn:hover {
+  background: #5c0000;
+}
+
+button.action-btn:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+button.secondary-btn {
+  padding: 0.6rem 1.4rem;
+  background: #fff;
+  color: var(--sidebar-bg);
+  border: 2px solid var(--sidebar-bg);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+button.secondary-btn:hover {
+  background: var(--sidebar-bg);
+  color: #fff;
+}
+
+/* Canvas area */
+.canvas-container {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.canvas-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.canvas-wrap h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+canvas {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+}
+
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.85rem;
+}
+
+.stat-item .stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 0.15rem;
+}
+
+.stat-item .stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Backprop table */
+.bp-table-wrap {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+table.bp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+table.bp-table th {
+  background: var(--sidebar-bg);
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+table.bp-table td {
+  padding: 0.45rem 0.75rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+table.bp-table tr.forward-row { background: rgba(59, 130, 246, 0.06); }
+table.bp-table tr.backward-row { background: rgba(239, 68, 68, 0.06); }
+table.bp-table tr.update-row { background: rgba(16, 185, 129, 0.06); }
+
+table.bp-table .op-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: #fff;
+}
+
+.op-F { background: var(--accent-1); }
+.op-B { background: var(--accent-5); }
+.op-U { background: var(--accent-2); }
+
+.highlight-new { animation: flashGreen 1.2s ease-out; }
+
+@keyframes flashGreen {
+  0% { background-color: rgba(16, 185, 129, 0.3); }
+  100% { background-color: transparent; }
+}
+
+/* Sample indicator */
+.sample-indicator {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.85rem;
+  color: var(--text-light);
+  margin-left: 0.5rem;
+}
+
+@media (max-width: 900px) {
+  nav.sidebar { display: none; }
+  main { margin-left: 0; padding: 1.5rem; }
+  .canvas-container { flex-direction: column; align-items: center; }
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="logo">
+    <h2>ADSP 31018 Machine Learning II</h2>
+    <p>Batu Gundogdu</p>
+  </div>
+  <ul>
+    <li><a href="#intro" class="active">
+      <span class="dot bg-accent-1"></span> Introduction
+    </a></li>
+    <li><a href="#model">
+      <span class="dot bg-accent-2"></span> Model &amp; Math
+    </a></li>
+    <li><a href="#interactive">
+      <span class="dot bg-accent-3"></span> Interactive Trainer
+    </a></li>
+    <li><a href="#computation">
+      <span class="dot bg-accent-4"></span> Computation Log
+    </a></li>
+    <li><a href="#interpretation">
+      <span class="dot bg-accent-5"></span> Interpretation
+    </a></li>
+  </ul>
+</nav>
+
+<main>
+<header class="hero">
+  <h1>Lecture-3: Backpropagation</h1>
+  <p>Step through forward passes, gradient computation, and weight updates one sample at a time — an interactive guide to training a small neural network.</p>
+</header>
+
+<!-- Intro -->
+<section id="intro">
+  <div class="section-header">
+    <div class="section-number bg-accent-1">1</div>
+    <h2>Introduction</h2>
+  </div>
+  <p>
+    Training a neural network requires computing how each weight contributes to the error.
+    <strong>Backpropagation</strong> is the algorithm that efficiently computes these gradients
+    by applying the chain rule from the output layer back through the network.
+  </p>
+  <p>
+    In this tutorial we fit a <em>nonlinear 1D function</em> using a tiny network with a single
+    hidden neuron. Each time you press <strong>"Next Training Sample"</strong>, the system:
+  </p>
+  <p>
+    &ensp;1. Draws a new training point $(x, y)$ from the true function<br>
+    &ensp;2. Runs a <strong>forward pass</strong> to compute the network's prediction $\hat{y}$<br>
+    &ensp;3. Runs the <strong>backward pass</strong> to compute all gradients $\partial L / \partial \theta$<br>
+    &ensp;4. <strong>Updates</strong> the weights via gradient descent
+  </p>
+  <p>
+    Watch the predicted curve reshape itself as the network learns!
+  </p>
+</section>
+
+<!-- Model -->
+<section id="model">
+  <div class="section-header">
+    <div class="section-number bg-accent-2">2</div>
+    <h2>Model &amp; Math</h2>
+  </div>
+  <p>We approximate a target function $f(x)$ with a one-hidden-neuron network:</p>
+  <div class="math-block">
+    $$h = w_1 x + b_1 \qquad a = \tanh(h) \qquad \hat{y} = w_z\, a + b_z$$
+  </div>
+  <p>The squared-error loss for a single sample is:</p>
+  <div class="math-block">
+    $$L = \tfrac{1}{2}(\hat{y} - y)^2$$
+  </div>
+  <p><strong>Backward pass</strong> — applying the chain rule:</p>
+  <div class="math-block">
+    $$\frac{\partial L}{\partial \hat{y}} = \hat{y} - y$$
+    $$\frac{\partial L}{\partial w_z} = \frac{\partial L}{\partial \hat{y}} \cdot a \qquad
+      \frac{\partial L}{\partial b_z} = \frac{\partial L}{\partial \hat{y}}$$
+    $$\frac{\partial L}{\partial a} = \frac{\partial L}{\partial \hat{y}} \cdot w_z \qquad
+      \frac{\partial L}{\partial h} = \frac{\partial L}{\partial a} \cdot (1 - a^2)$$
+    $$\frac{\partial L}{\partial w_1} = \frac{\partial L}{\partial h} \cdot x \qquad
+      \frac{\partial L}{\partial b_1} = \frac{\partial L}{\partial h}$$
+  </div>
+  <p><strong>Update</strong> — each parameter moves opposite its gradient:</p>
+  <div class="math-block">
+    $$\theta \leftarrow \theta - \eta \, \frac{\partial L}{\partial \theta}$$
+  </div>
+</section>
+
+<!-- Interactive -->
+<section id="interactive">
+  <div class="section-header">
+    <div class="section-number bg-accent-3">3</div>
+    <h2>Interactive Trainer</h2>
+  </div>
+
+  <div class="card">
+    <div class="controls-row">
+      <div class="control-group">
+        <label>Learning Rate ($\eta$)</label>
+        <div class="control-row">
+          <input type="range" id="lr-slider" min="-2" max="0" step="0.1" value="-0.7">
+          <span class="val" id="lr-val">0.20</span>
+        </div>
+      </div>
+      <button class="action-btn" id="next-btn" onclick="nextSample()">Next Training Sample</button>
+      <button class="action-btn" onclick="runN(10)">Train 10 Steps</button>
+      <button class="action-btn" onclick="runN(100)">Train 100 Steps</button>
+      <button class="secondary-btn" onclick="resetAll()">Reset Network</button>
+      <span class="sample-indicator" id="step-counter">Step: 0</span>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-label">Current Sample Loss</div>
+        <div class="stat-value" id="current-loss">—</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Avg Test Error (MSE)</div>
+        <div class="stat-value" id="test-error">—</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Weights</div>
+        <div class="stat-value" id="weights-display">—</div>
+      </div>
+    </div>
+
+    <div class="canvas-container">
+      <div class="canvas-wrap">
+        <h3>Function Approximation</h3>
+        <canvas id="plotCanvas" width="600" height="400"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Computation log -->
+<section id="computation">
+  <div class="section-header">
+    <div class="section-number bg-accent-4">4</div>
+    <h2>Computation Log</h2>
+  </div>
+  <div class="card">
+    <p style="margin-bottom:0.5rem;">Each row below shows one operation from the most recent training step.</p>
+    <div class="bp-table-wrap">
+      <table class="bp-table" id="bp-table">
+        <thead>
+          <tr>
+            <th>Op</th>
+            <th>Description</th>
+            <th>$x$</th>
+            <th>$y$</th>
+            <th>$h$</th>
+            <th>$a$</th>
+            <th>$\hat{y}$</th>
+            <th>$L$</th>
+            <th>$w_1$</th>
+            <th>$b_1$</th>
+            <th>$w_z$</th>
+            <th>$b_z$</th>
+            <th>$\frac{\partial L}{\partial w_1}$</th>
+            <th>$\frac{\partial L}{\partial b_1}$</th>
+            <th>$\frac{\partial L}{\partial w_z}$</th>
+            <th>$\frac{\partial L}{\partial b_z}$</th>
+          </tr>
+        </thead>
+        <tbody id="bp-body">
+          <tr><td colspan="16" style="color:#999; padding:1.5rem;">Press "Next Training Sample" to begin</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Interpretation -->
+<section id="interpretation">
+  <div class="section-header">
+    <div class="section-number bg-accent-5">5</div>
+    <h2>Interpretation</h2>
+  </div>
+  <p>
+    With only <strong>one hidden neuron</strong> and a $\tanh$ activation, the network can represent
+    a <em>scaled, shifted, and squashed</em> version of $\tanh$. The weight $w_1$ and bias $b_1$
+    control where and how steeply the $\tanh$ transition occurs, while $w_z$ and $b_z$ scale
+    and shift the output.
+  </p>
+  <p>
+    Notice that:
+  </p>
+  <p>
+    &ensp;&bull; Early updates often correct the <strong>output bias</strong> $b_z$ first (the easiest way to reduce error).<br>
+    &ensp;&bull; The gradient $\partial L / \partial w_1$ is proportional to the input $x$ — samples far from the origin produce
+    larger weight updates.<br>
+    &ensp;&bull; The $(1 - a^2)$ factor in the $\tanh$ derivative means gradients <strong>vanish</strong> when
+    $|h|$ is large (the neuron is saturated). This is the vanishing gradient problem in miniature.
+  </p>
+  <p>
+    A single neuron cannot approximate the full target curve well. In a later extension we will
+    add more neurons to the hidden layer, allowing richer representations.
+  </p>
+</section>
+</main>
+
+<script>
+// ========== Target Function ==========
+// y = 0.5 + 0.4*sin(2*pi*x/T) with some structure
+function targetFn(x) {
+  return 0.5 * Math.sin(1.5 * x) + 0.3 * Math.cos(0.8 * x);
+}
+
+// ========== Network State ==========
+let w1, b1, wz, bz;
+let stepCount = 0;
+let trainHistory = []; // [{x, y}] all samples seen
+
+// Fixed test set
+const testPoints = [];
+const nTest = 50;
+for (let i = 0; i < nTest; i++) {
+  const x = -3 + 6 * i / (nTest - 1);
+  testPoints.push({ x: x, y: targetFn(x) });
+}
+
+function initWeights() {
+  // Small random init
+  w1 = (Math.random() - 0.5) * 1.0;
+  b1 = (Math.random() - 0.5) * 0.5;
+  wz = (Math.random() - 0.5) * 1.0;
+  bz = (Math.random() - 0.5) * 0.5;
+}
+
+function getLR() {
+  return Math.pow(10, parseFloat(document.getElementById('lr-slider').value));
+}
+
+// ========== Forward Pass ==========
+function forward(x) {
+  const h = w1 * x + b1;
+  const a = Math.tanh(h);
+  const yhat = wz * a + bz;
+  return { h, a, yhat };
+}
+
+// ========== Full Train Step ==========
+function trainStep(x, y) {
+  const lr = getLR();
+
+  // Forward
+  const { h, a, yhat } = forward(x);
+  const loss = 0.5 * (yhat - y) ** 2;
+
+  // Backward
+  const dL_dyhat = yhat - y;
+  const dL_dwz = dL_dyhat * a;
+  const dL_dbz = dL_dyhat;
+  const dL_da = dL_dyhat * wz;
+  const dL_dh = dL_da * (1 - a * a);
+  const dL_dw1 = dL_dh * x;
+  const dL_db1 = dL_dh;
+
+  // Store pre-update weights for table
+  const old = { w1, b1, wz, bz };
+
+  // Update
+  w1 -= lr * dL_dw1;
+  b1 -= lr * dL_db1;
+  wz -= lr * dL_dwz;
+  bz -= lr * dL_dbz;
+
+  return {
+    x, y, h, a, yhat, loss,
+    dL_dw1, dL_db1, dL_dwz, dL_dbz,
+    old,
+    newW: { w1, b1, wz, bz }
+  };
+}
+
+// ========== Test Error ==========
+function computeTestError() {
+  let mse = 0;
+  for (const tp of testPoints) {
+    const { yhat } = forward(tp.x);
+    mse += (yhat - tp.y) ** 2;
+  }
+  return mse / testPoints.length;
+}
+
+// ========== Draw Plot ==========
+const plotCanvas = document.getElementById('plotCanvas');
+const ctx = plotCanvas.getContext('2d');
+const PW = 600, PH = 400;
+const xPlotMin = -3.5, xPlotMax = 3.5;
+const yPlotMin = -1.8, yPlotMax = 1.8;
+
+function xToP(x) { return (x - xPlotMin) / (xPlotMax - xPlotMin) * PW; }
+function yToP(y) { return PH - (y - yPlotMin) / (yPlotMax - yPlotMin) * PH; }
+
+function drawPlot(currentSample) {
+  ctx.clearRect(0, 0, PW, PH);
+
+  // Grid
+  ctx.strokeStyle = '#f0f0f0';
+  ctx.lineWidth = 1;
+  for (let v = Math.ceil(xPlotMin); v <= xPlotMax; v++) {
+    const px = xToP(v);
+    ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, PH); ctx.stroke();
+  }
+  for (let v = Math.ceil(yPlotMin); v <= yPlotMax; v++) {
+    const py = yToP(v);
+    ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(PW, py); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = '#ccc';
+  ctx.lineWidth = 1.5;
+  const ox = xToP(0), oy = yToP(0);
+  ctx.beginPath(); ctx.moveTo(ox, 0); ctx.lineTo(ox, PH); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, oy); ctx.lineTo(PW, oy); ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle = '#999';
+  ctx.font = '11px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  for (let v = Math.ceil(xPlotMin); v <= xPlotMax; v++) {
+    if (v === 0) continue;
+    ctx.fillText(v, xToP(v), oy + 14);
+  }
+  ctx.textAlign = 'right';
+  for (let v = Math.ceil(yPlotMin); v <= yPlotMax; v++) {
+    if (v === 0) continue;
+    ctx.fillText(v.toFixed(1), ox - 6, yToP(v) + 4);
+  }
+  ctx.fillStyle = '#666';
+  ctx.font = '13px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('x', PW - 12, oy - 8);
+  ctx.textAlign = 'right';
+  ctx.fillText('y', ox - 10, 15);
+
+  // True function (blue dashed)
+  ctx.strokeStyle = 'rgba(59, 130, 246, 0.7)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  for (let px = 0; px <= PW; px += 2) {
+    const x = xPlotMin + (px / PW) * (xPlotMax - xPlotMin);
+    const y = targetFn(x);
+    if (px === 0) ctx.moveTo(px, yToP(y));
+    else ctx.lineTo(px, yToP(y));
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Network prediction (red solid)
+  ctx.strokeStyle = 'rgba(239, 68, 68, 0.9)';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  for (let px = 0; px <= PW; px += 2) {
+    const x = xPlotMin + (px / PW) * (xPlotMax - xPlotMin);
+    const { yhat } = forward(x);
+    if (px === 0) ctx.moveTo(px, yToP(yhat));
+    else ctx.lineTo(px, yToP(yhat));
+  }
+  ctx.stroke();
+
+  // Test points (small gray dots)
+  for (const tp of testPoints) {
+    ctx.beginPath();
+    ctx.arc(xToP(tp.x), yToP(tp.y), 3, 0, 2 * Math.PI);
+    ctx.fillStyle = 'rgba(100, 116, 139, 0.5)';
+    ctx.fill();
+  }
+
+  // Past training samples (small green dots)
+  for (const s of trainHistory) {
+    ctx.beginPath();
+    ctx.arc(xToP(s.x), yToP(s.y), 3.5, 0, 2 * Math.PI);
+    ctx.fillStyle = 'rgba(16, 185, 129, 0.4)';
+    ctx.fill();
+  }
+
+  // Current sample (large highlighted)
+  if (currentSample) {
+    ctx.beginPath();
+    ctx.arc(xToP(currentSample.x), yToP(currentSample.y), 7, 0, 2 * Math.PI);
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.9)';
+    ctx.fill();
+    ctx.strokeStyle = '#92400e';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Vertical line from prediction to true value
+    const { yhat } = forward(currentSample.x);
+    ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(xToP(currentSample.x), yToP(currentSample.y));
+    ctx.lineTo(xToP(currentSample.x), yToP(yhat));
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Legend
+  ctx.font = '12px -apple-system, sans-serif';
+  ctx.textAlign = 'left';
+
+  const lx = 15, ly = 20;
+  ctx.setLineDash([6, 4]);
+  ctx.strokeStyle = 'rgba(59, 130, 246, 0.7)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + 25, ly); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#333';
+  ctx.fillText('True f(x)', lx + 30, ly + 4);
+
+  ctx.strokeStyle = 'rgba(239, 68, 68, 0.9)';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(lx, ly + 18); ctx.lineTo(lx + 25, ly + 18); ctx.stroke();
+  ctx.fillText('Network', lx + 30, ly + 22);
+
+  ctx.beginPath();
+  ctx.arc(lx + 12, ly + 36, 4, 0, 2 * Math.PI);
+  ctx.fillStyle = 'rgba(16, 185, 129, 0.6)';
+  ctx.fill();
+  ctx.fillStyle = '#333';
+  ctx.fillText('Train samples', lx + 30, ly + 40);
+}
+
+// ========== Update Table ==========
+function updateTable(result) {
+  const fmt = (v) => v.toFixed(4);
+  const fmts = (v) => v >= 0 ? '+' + v.toFixed(4) : v.toFixed(4);
+
+  const tbody = document.getElementById('bp-body');
+  tbody.innerHTML = '';
+
+  // Forward row
+  const fRow = document.createElement('tr');
+  fRow.className = 'forward-row highlight-new';
+  fRow.innerHTML = `
+    <td><span class="op-badge op-F">F</span></td>
+    <td style="text-align:left;">Forward pass</td>
+    <td>${fmt(result.x)}</td>
+    <td>${fmt(result.y)}</td>
+    <td>${fmt(result.h)}</td>
+    <td>${fmt(result.a)}</td>
+    <td>${fmt(result.yhat)}</td>
+    <td>${fmt(result.loss)}</td>
+    <td>${fmt(result.old.w1)}</td>
+    <td>${fmt(result.old.b1)}</td>
+    <td>${fmt(result.old.wz)}</td>
+    <td>${fmt(result.old.bz)}</td>
+    <td>—</td><td>—</td><td>—</td><td>—</td>
+  `;
+  tbody.appendChild(fRow);
+
+  // Backward row
+  const bRow = document.createElement('tr');
+  bRow.className = 'backward-row highlight-new';
+  bRow.innerHTML = `
+    <td><span class="op-badge op-B">B</span></td>
+    <td style="text-align:left;">Backward pass</td>
+    <td>${fmt(result.x)}</td>
+    <td>${fmt(result.y)}</td>
+    <td>${fmt(result.h)}</td>
+    <td>${fmt(result.a)}</td>
+    <td>${fmt(result.yhat)}</td>
+    <td>${fmt(result.loss)}</td>
+    <td>${fmt(result.old.w1)}</td>
+    <td>${fmt(result.old.b1)}</td>
+    <td>${fmt(result.old.wz)}</td>
+    <td>${fmt(result.old.bz)}</td>
+    <td>${fmts(result.dL_dw1)}</td>
+    <td>${fmts(result.dL_db1)}</td>
+    <td>${fmts(result.dL_dwz)}</td>
+    <td>${fmts(result.dL_dbz)}</td>
+  `;
+  tbody.appendChild(bRow);
+
+  // Update row
+  const uRow = document.createElement('tr');
+  uRow.className = 'update-row highlight-new';
+  uRow.innerHTML = `
+    <td><span class="op-badge op-U">U</span></td>
+    <td style="text-align:left;">Weight update</td>
+    <td>${fmt(result.x)}</td>
+    <td>${fmt(result.y)}</td>
+    <td>—</td>
+    <td>—</td>
+    <td>—</td>
+    <td>—</td>
+    <td>${fmt(result.newW.w1)}</td>
+    <td>${fmt(result.newW.b1)}</td>
+    <td>${fmt(result.newW.wz)}</td>
+    <td>${fmt(result.newW.bz)}</td>
+    <td>${fmts(result.dL_dw1)}</td>
+    <td>${fmts(result.dL_db1)}</td>
+    <td>${fmts(result.dL_dwz)}</td>
+    <td>${fmts(result.dL_dbz)}</td>
+  `;
+  tbody.appendChild(uRow);
+}
+
+// ========== Update Stats ==========
+function updateStats(result) {
+  document.getElementById('current-loss').textContent = result.loss.toFixed(6);
+  document.getElementById('test-error').textContent = computeTestError().toFixed(6);
+  document.getElementById('weights-display').textContent =
+    `w\u2081=${w1.toFixed(3)}  b\u2081=${b1.toFixed(3)}  w\u1D63=${wz.toFixed(3)}  b\u1D63=${bz.toFixed(3)}`;
+  document.getElementById('step-counter').textContent = `Step: ${stepCount}`;
+}
+
+// ========== Actions ==========
+function nextSample() {
+  // Random x in [-3, 3]
+  const x = -3 + 6 * Math.random();
+  const y = targetFn(x);
+
+  const result = trainStep(x, y);
+  stepCount++;
+  trainHistory.push({ x, y });
+
+  updateTable(result);
+  updateStats(result);
+  drawPlot({ x, y });
+}
+
+function runN(n) {
+  for (let i = 0; i < n; i++) {
+    const x = -3 + 6 * Math.random();
+    const y = targetFn(x);
+    const result = trainStep(x, y);
+    stepCount++;
+    trainHistory.push({ x, y });
+    if (i === n - 1) {
+      updateTable(result);
+      updateStats(result);
+      drawPlot({ x, y });
+    }
+  }
+}
+
+function resetAll() {
+  initWeights();
+  stepCount = 0;
+  trainHistory = [];
+  document.getElementById('bp-body').innerHTML =
+    '<tr><td colspan="16" style="color:#999; padding:1.5rem;">Press "Next Training Sample" to begin</td></tr>';
+  document.getElementById('current-loss').textContent = '—';
+  document.getElementById('test-error').textContent = computeTestError().toFixed(6);
+  document.getElementById('weights-display').textContent =
+    `w\u2081=${w1.toFixed(3)}  b\u2081=${b1.toFixed(3)}  w\u1D63=${wz.toFixed(3)}  b\u1D63=${bz.toFixed(3)}`;
+  document.getElementById('step-counter').textContent = 'Step: 0';
+  drawPlot(null);
+}
+
+// ========== LR slider ==========
+document.getElementById('lr-slider').addEventListener('input', function() {
+  const lr = Math.pow(10, parseFloat(this.value));
+  document.getElementById('lr-val').textContent = lr.toFixed(2);
+});
+
+// ========== Sidebar scroll highlighting ==========
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('nav.sidebar a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 120) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+}, { passive: true });
+
+// ========== Init ==========
+initWeights();
+document.getElementById('test-error').textContent = computeTestError().toFixed(6);
+document.getElementById('weights-display').textContent =
+  `w\u2081=${w1.toFixed(3)}  b\u2081=${b1.toFixed(3)}  w\u1D63=${wz.toFixed(3)}  b\u1D63=${bz.toFixed(3)}`;
+drawPlot(null);
+</script>
+
+</body>
+</html>
