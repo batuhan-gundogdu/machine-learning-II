@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture-4: Activation Functions — ML II</title>
+<script>
+MathJax = { tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+:root {
+  --bg: #f8f9fa;
+  --text: #1a1a2e;
+  --text-light: #555;
+  --card-bg: #fff;
+  --sidebar-bg: #800000;
+  --sidebar-text: #ccc;
+  --sidebar-active: #fff;
+  --accent-1: #3B82F6;
+  --accent-2: #10B981;
+  --accent-3: #8B5CF6;
+  --accent-4: #F59E0B;
+  --accent-5: #EF4444;
+  --border: #e2e8f0;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  display: flex;
+}
+
+/* Sidebar */
+nav.sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: 260px;
+  height: 100vh;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  padding: 2rem 0;
+  overflow-y: auto;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+nav.sidebar .logo {
+  padding: 0 1.5rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 1rem;
+}
+
+nav.sidebar .logo h2 {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+nav.sidebar .logo p {
+  font-size: 0.8rem;
+  opacity: 1;
+  color: #fff;
+  margin-top: 0.25rem;
+}
+
+nav.sidebar ul {
+  list-style: none;
+  flex: 1;
+}
+
+nav.sidebar li a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+
+nav.sidebar li a:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.05);
+}
+
+nav.sidebar li a.active {
+  color: var(--sidebar-active);
+  border-left-color: var(--accent-1);
+  background: rgba(255,255,255,0.08);
+}
+
+nav.sidebar li a .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bg-accent-1 { background: var(--accent-1); }
+.bg-accent-2 { background: var(--accent-2); }
+.bg-accent-3 { background: var(--accent-3); }
+.bg-accent-4 { background: var(--accent-4); }
+.bg-accent-5 { background: var(--accent-5); }
+
+/* Main content */
+main {
+  margin-left: 260px;
+  flex: 1;
+  min-height: 100vh;
+}
+
+header.hero {
+  background: linear-gradient(135deg, var(--sidebar-bg) 0%, #2d2d5e 100%);
+  color: #fff;
+  padding: 5rem 3rem 4rem;
+}
+
+header.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.75rem;
+}
+
+header.hero p {
+  font-size: 1.15rem;
+  opacity: 1;
+  color: #fff;
+  max-width: 600px;
+}
+
+/* Sections */
+section {
+  padding: 3rem 3rem 1rem;
+  max-width: 1100px;
+}
+
+section#interactive {
+  max-width: none;
+}
+
+section .section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+section .section-number {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+section h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+p, .explanation {
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: var(--text-light);
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Math */
+.math-block {
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin: 1rem 0;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.88rem;
+  overflow-x: auto;
+}
+
+/* Controls */
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+button.action-btn {
+  padding: 0.6rem 1.4rem;
+  background: var(--sidebar-bg);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button.action-btn:hover {
+  background: #5c0000;
+}
+
+/* Canvas */
+canvas {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+}
+
+/* Stats */
+.stat-item {
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.85rem;
+}
+
+.stat-item .stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 0.15rem;
+}
+
+.stat-item .stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Activation selector */
+.activation-selector {
+  display: flex;
+  border: 2px solid var(--sidebar-bg);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.activation-selector button {
+  padding: 0.55rem 1.1rem;
+  border: none;
+  background: #fff;
+  color: var(--sidebar-bg);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-right: 1px solid rgba(128,0,0,0.2);
+}
+
+.activation-selector button:last-child {
+  border-right: none;
+}
+
+.activation-selector button:hover {
+  background: rgba(128,0,0,0.06);
+}
+
+.activation-selector button.active {
+  background: var(--sidebar-bg);
+  color: #fff;
+}
+
+/* Interactive grid */
+.interactive-grid {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.main-plot-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.main-plot-wrap h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+.small-plots-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.col-header {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.2rem;
+}
+
+.sm-canvas-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sm-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  margin-bottom: 0.15rem;
+}
+
+canvas.sm-canvas {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+}
+
+/* Parameter table */
+table.param-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+table.param-table th {
+  background: var(--sidebar-bg);
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+table.param-table td {
+  padding: 0.45rem 0.75rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+table.param-table tr:nth-child(even) {
+  background: rgba(59, 130, 246, 0.04);
+}
+
+/* MSE comparison bars */
+.mse-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.mse-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mse-bar-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  width: 60px;
+  text-align: right;
+  color: var(--text);
+}
+
+.mse-bar-track {
+  flex: 1;
+  height: 22px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.mse-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+  min-width: 2px;
+}
+
+.mse-bar-value {
+  font-size: 0.78rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--text-light);
+  min-width: 70px;
+}
+
+.mse-bar-row.active-bar .mse-bar-label {
+  color: var(--sidebar-bg);
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  nav.sidebar { display: none; }
+  main { margin-left: 0; padding: 1.5rem; }
+  .interactive-grid { flex-direction: column; align-items: center; }
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="logo">
+    <h2>ADSP 31018 Machine Learning II</h2>
+    <p>Batu Gundogdu</p>
+  </div>
+  <ul>
+    <li><a href="#intro" class="active">
+      <span class="dot bg-accent-1"></span> Introduction
+    </a></li>
+    <li><a href="#model">
+      <span class="dot bg-accent-2"></span> Model &amp; Activations
+    </a></li>
+    <li><a href="#interactive">
+      <span class="dot bg-accent-3"></span> Interactive Comparator
+    </a></li>
+    <li><a href="#parameters">
+      <span class="dot bg-accent-4"></span> Parameter Inspector
+    </a></li>
+    <li><a href="#interpretation">
+      <span class="dot bg-accent-5"></span> Interpretation
+    </a></li>
+  </ul>
+</nav>
+
+<main>
+<header class="hero">
+  <h1>Lecture-4: Activation Functions</h1>
+  <p>See how different nonlinearities decompose cos(x) into 5 hidden-neuron contributions in a 2-layer network.</p>
+</header>
+
+<!-- Section 1: Introduction -->
+<section id="intro">
+  <div class="section-header">
+    <div class="section-number bg-accent-1">1</div>
+    <h2>Introduction</h2>
+  </div>
+  <p>
+    The <strong>activation function</strong> is the nonlinearity that gives a neural network its
+    expressive power. Without it, stacking layers would only produce a linear function regardless
+    of depth. Different activation functions create fundamentally different types of basis functions
+    that the network uses to decompose its target.
+  </p>
+  <p>
+    In this tutorial we fit <strong>cos(x)</strong> on $[-2, 2]$ using a 2-layer network with
+    <strong>5 hidden neurons</strong>. By switching between four activation functions &mdash;
+    RBF, ReLU, Sigmoid, and Tanh &mdash; you can see how each one decomposes the same
+    target into a different set of neuron contributions.
+  </p>
+  <p>
+    The goal is to build intuition for <em>what each activation does geometrically</em>:
+    RBF neurons produce localized bumps, ReLU neurons produce ramps with hinge points,
+    Sigmoid neurons produce shifted step functions, and Tanh neurons produce shifted S-curves
+    centered at zero.
+  </p>
+</section>
+
+<!-- Section 2: Model & Activations -->
+<section id="model">
+  <div class="section-header">
+    <div class="section-number bg-accent-2">2</div>
+    <h2>Model &amp; Activations</h2>
+  </div>
+
+  <p><strong>Network architecture</strong> &mdash; a single hidden layer with $K = 5$ neurons:</p>
+  <div class="math-block">
+    $$\hat{y} = \sum_{i=1}^{5} v_i \cdot \varphi(w_i\, x + b_i) + c$$
+  </div>
+  <p>Each neuron computes a pre-activation $z_i = w_i x + b_i$, applies the nonlinearity $\varphi$,
+    and is scaled by an output weight $v_i$. The bias $c$ shifts the overall prediction.</p>
+
+  <p><strong>Activation functions and their derivatives:</strong></p>
+
+  <div class="card">
+    <p style="margin-bottom:0.5rem;"><strong style="color:var(--accent-1);">RBF (Radial Basis Function)</strong></p>
+    <div class="math-block">
+      $$\varphi(z) = e^{-z^2}, \qquad \varphi'(z) = -2z\,e^{-z^2}$$
+    </div>
+    <p>Produces a localized <em>Gaussian bump</em> centered where $z = 0$, i.e., at $x = -b_i / w_i$.
+      The parameter $w_i$ controls the bump width.</p>
+  </div>
+
+  <div class="card">
+    <p style="margin-bottom:0.5rem;"><strong style="color:var(--accent-2);">ReLU (Rectified Linear Unit)</strong></p>
+    <div class="math-block">
+      $$\varphi(z) = \max(0,\, z), \qquad \varphi'(z) = \begin{cases} 1 & z > 0 \\ 0 & z \le 0 \end{cases}$$
+    </div>
+    <p>Creates a <em>ramp</em> that turns on at the hinge point $x = -b_i / w_i$.
+      The network output is piecewise linear.</p>
+  </div>
+
+  <div class="card">
+    <p style="margin-bottom:0.5rem;"><strong style="color:var(--accent-3);">Sigmoid</strong></p>
+    <div class="math-block">
+      $$\varphi(z) = \frac{1}{1 + e^{-z}}, \qquad \varphi'(z) = \varphi(z)\,(1 - \varphi(z))$$
+    </div>
+    <p>A smooth <em>step function</em> mapping $\mathbb{R} \to (0, 1)$. The transition is centered
+      at $z = 0$ with maximum gradient $\frac{1}{4}$.</p>
+  </div>
+
+  <div class="card">
+    <p style="margin-bottom:0.5rem;"><strong style="color:var(--accent-5);">Tanh</strong></p>
+    <div class="math-block">
+      $$\varphi(z) = \tanh(z), \qquad \varphi'(z) = 1 - \tanh^2(z)$$
+    </div>
+    <p>Like Sigmoid but <em>zero-centered</em>, mapping $\mathbb{R} \to (-1, 1)$.
+      Maximum gradient of $1$ at $z = 0$.</p>
+  </div>
+
+  <p><strong>Training.</strong> We minimize mean squared error over 50 fixed training points
+    using full-batch gradient descent:</p>
+  <div class="math-block">
+    $$\text{MSE} = \frac{1}{N}\sum_{n=1}^{N} (\hat{y}_n - y_n)^2, \qquad
+    \theta \leftarrow \theta - \eta\,\nabla_\theta\,\text{MSE}$$
+  </div>
+</section>
+
+<!-- Section 3: Interactive Comparator -->
+<section id="interactive">
+  <div class="section-header">
+    <div class="section-number bg-accent-3">3</div>
+    <h2>Interactive Comparator</h2>
+  </div>
+
+  <div class="card">
+    <div class="controls-row">
+      <div class="activation-selector" id="act-selector">
+        <button class="active" data-type="rbf">RBF</button>
+        <button data-type="relu">ReLU</button>
+        <button data-type="sigmoid">Sigmoid</button>
+        <button data-type="tanh">Tanh</button>
+      </div>
+      <button class="action-btn" onclick="retrain()">Retrain</button>
+      <div class="stat-item">
+        <div class="stat-label">MSE</div>
+        <div class="stat-value" id="mse-display">&mdash;</div>
+      </div>
+    </div>
+
+    <div class="interactive-grid">
+      <div class="main-plot-wrap">
+        <h3>Function Approximation</h3>
+        <canvas id="mainPlot" width="600" height="400"></canvas>
+      </div>
+      <div class="small-plots-col">
+        <div class="col-header">Raw Activation</div>
+        <div class="sm-canvas-wrap"><span class="sm-label" style="color:var(--accent-1)">&#966;(w&#8321;x+b&#8321;)</span><canvas class="sm-canvas" id="raw-0" width="180" height="70"></canvas></div>
+        <div class="sm-canvas-wrap"><span class="sm-label" style="color:var(--accent-2)">&#966;(w&#8322;x+b&#8322;)</span><canvas class="sm-canvas" id="raw-1" width="180" height="70"></canvas></div>
+        <div class="sm-canvas-wrap"><span class="sm-label" style="color:var(--accent-3)">&#966;(w&#8323;x+b&#8323;)</span><canvas class="sm-canvas" id="raw-2" width="180" height="70"></canvas></div>
+        <div class="sm-canvas-wrap"><span class="sm-label" style="color:var(--accent-4)">&#966;(w&#8324;x+b&#8324;)</span><canvas class="sm-canvas" id="raw-3" width="180" height="70"></canvas></div>
+        <div class="sm-canvas-wrap"><span class="sm-label" style="color:var(--accent-5)">&#966;(w&#8325;x+b&#8325;)</span><canvas class="sm-canvas" id="raw-4" width="180" height="70"></canvas></div>
+      </div>
+      <div class="small-plots-col">
+        <div class="col-header">Weighted Contribution</div>
+        <div class="sm-canvas-wrap"><span class="sm-label" style="color:var(--accent-1)">v&#8321;&#183;&#966;(w&#8321;x+b&#8321;)</span><canvas class="sm-canvas" id="wt-0" width="180" height="70"></canvas></div>
+        <div class="sm-canvas-wrap"><span class="sm-label" style="color:var(--accent-2)">v&#8322;&#183;&#966;(w&#8322;x+b&#8322;)</span><canvas class="sm-canvas" id="wt-1" width="180" height="70"></canvas></div>
+        <div class="sm-canvas-wrap"><span class="sm-label" style="color:var(--accent-3)">v&#8323;&#183;&#966;(w&#8323;x+b&#8323;)</span><canvas class="sm-canvas" id="wt-2" width="180" height="70"></canvas></div>
+        <div class="sm-canvas-wrap"><span class="sm-label" style="color:var(--accent-4)">v&#8324;&#183;&#966;(w&#8324;x+b&#8324;)</span><canvas class="sm-canvas" id="wt-3" width="180" height="70"></canvas></div>
+        <div class="sm-canvas-wrap"><span class="sm-label" style="color:var(--accent-5)">v&#8325;&#183;&#966;(w&#8325;x+b&#8325;)</span><canvas class="sm-canvas" id="wt-4" width="180" height="70"></canvas></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 4: Parameter Inspector -->
+<section id="parameters">
+  <div class="section-header">
+    <div class="section-number bg-accent-4">4</div>
+    <h2>Parameter Inspector</h2>
+  </div>
+
+  <div class="card">
+    <p style="margin-bottom:0.75rem;">Learned parameters for the currently selected activation (<strong id="param-act-label">RBF</strong>):</p>
+    <div style="overflow-x:auto;">
+      <table class="param-table" id="param-table">
+        <thead>
+          <tr>
+            <th>Neuron</th>
+            <th>$w_i$</th>
+            <th>$b_i$</th>
+            <th>$v_i$</th>
+            <th>Center $-b_i/w_i$</th>
+          </tr>
+        </thead>
+        <tbody id="param-body"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:0.5rem; font-family:'SF Mono','Fira Code',monospace; font-size:0.85rem; color:var(--text);">
+      Output bias: $c$ = <span id="param-c">&mdash;</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <p style="margin-bottom:0.75rem;"><strong>MSE Comparison</strong> across all four activations:</p>
+    <div class="mse-bars" id="mse-bars"></div>
+  </div>
+</section>
+
+<!-- Section 5: Interpretation -->
+<section id="interpretation">
+  <div class="section-header">
+    <div class="section-number bg-accent-5">5</div>
+    <h2>Interpretation</h2>
+  </div>
+  <p>
+    Each activation function decomposes $\cos(x)$ in a qualitatively different way:
+  </p>
+  <p>
+    <strong style="color:var(--accent-1);">RBF</strong> neurons act as <em>localized bumps</em>.
+    Each neuron "owns" a region of the input space and contributes a Gaussian-shaped pulse.
+    The network approximates cos(x) by placing bumps of varying heights at different locations &mdash;
+    essentially a sum of Gaussians. The bump widths and positions are controlled by $w_i$ and $b_i$.
+  </p>
+  <p>
+    <strong style="color:var(--accent-2);">ReLU</strong> neurons act as <em>hinged ramps</em>.
+    Each neuron contributes a piecewise-linear piece that "turns on" at a specific point.
+    The overall prediction is piecewise linear &mdash; you can see the kinks where different
+    neurons activate. With 5 neurons, the network can create up to 6 linear segments, enough
+    for a reasonable approximation of the smooth cosine curve.
+  </p>
+  <p>
+    <strong style="color:var(--accent-3);">Sigmoid</strong> neurons act as <em>soft step functions</em>.
+    Each neuron transitions smoothly from $0$ to $v_i$ (or $v_i$ to $0$ if $v_i < 0$).
+    The network builds cos(x) by stacking shifted steps &mdash; each step adjusts the function value
+    in a different region. Note the maximum derivative is only $\frac{1}{4}$, making training slower (the
+    vanishing gradient problem in action).
+  </p>
+  <p>
+    <strong style="color:var(--accent-5);">Tanh</strong> neurons act as <em>smooth S-curves centered at zero</em>.
+    Like Sigmoid but ranging from $-1$ to $+1$, so the weighted contributions can be both positive and
+    negative without needing large output weights. This zero-centered property generally leads to
+    faster convergence and more balanced decompositions.
+  </p>
+  <p>
+    Press <strong>Retrain</strong> several times for each activation to see how the decomposition varies
+    across different local minima. The total prediction $\hat{y}$ may look similar, but the individual
+    neuron contributions can differ significantly &mdash; an illustration of the non-uniqueness of
+    neural network solutions.
+  </p>
+</section>
+</main>
+
+<script>
+// ========== Activation Definitions ==========
+const ACTIVATIONS = {
+  rbf: {
+    fn: z => Math.exp(-z * z),
+    dfn: z => -2 * z * Math.exp(-z * z),
+    label: 'RBF'
+  },
+  relu: {
+    fn: z => Math.max(0, z),
+    dfn: z => z > 0 ? 1 : 0,
+    label: 'ReLU'
+  },
+  sigmoid: {
+    fn: z => 1 / (1 + Math.exp(-Math.max(-500, Math.min(500, z)))),
+    dfn: z => {
+      const s = 1 / (1 + Math.exp(-Math.max(-500, Math.min(500, z))));
+      return s * (1 - s);
+    },
+    label: 'Sigmoid'
+  },
+  tanh: {
+    fn: z => Math.tanh(z),
+    dfn: z => { const t = Math.tanh(z); return 1 - t * t; },
+    label: 'Tanh'
+  }
+};
+
+// ========== Training Data ==========
+const K = 5;  // hidden neurons
+const N = 50; // training points
+const trainX = [], trainY = [];
+for (let i = 0; i < N; i++) {
+  const x = -2 + 4 * i / (N - 1);
+  trainX.push(x);
+  trainY.push(Math.cos(x));
+}
+
+// ========== Helpers ==========
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function clip(v, maxVal) {
+  return Math.max(-maxVal, Math.min(maxVal, v));
+}
+
+// ========== Hyperparameters ==========
+const HYPER = {
+  rbf:     { lr: 0.05,  epochs: 5000 },
+  relu:    { lr: 0.015, epochs: 5000 },
+  sigmoid: { lr: 0.15,  epochs: 5000 },
+  tanh:    { lr: 0.05,  epochs: 5000 }
+};
+
+const RESTARTS = 3;
+const GRAD_CLIP = 5.0;
+
+// ========== Initialization ==========
+function initParams(type) {
+  const w = [], b = [], v = [];
+  let c = 0;
+
+  if (type === 'rbf') {
+    const centers = [-1.5, -0.75, 0, 0.75, 1.5];
+    for (let i = 0; i < K; i++) {
+      w[i] = 1.0 + Math.random() * 1.0;
+      b[i] = -w[i] * (centers[i] + (Math.random() - 0.5) * 0.3);
+      v[i] = (Math.random() - 0.5) * 2;
+    }
+  } else if (type === 'relu') {
+    for (let i = 0; i < K; i++) {
+      w[i] = randn() * 1.5;
+      b[i] = (Math.random() - 0.5) * 4;
+      v[i] = (Math.random() - 0.5) * 1.0;
+    }
+  } else if (type === 'sigmoid') {
+    for (let i = 0; i < K; i++) {
+      w[i] = randn() * 2.0;
+      b[i] = (Math.random() - 0.5) * 6;
+      v[i] = (Math.random() - 0.5) * 4;
+    }
+  } else { // tanh
+    for (let i = 0; i < K; i++) {
+      w[i] = randn() * 1.2;
+      b[i] = (Math.random() - 0.5) * 3;
+      v[i] = (Math.random() - 0.5) * 2;
+    }
+  }
+
+  return { w, b, v, c };
+}
+
+// ========== Training ==========
+function trainActivation(type) {
+  const act = ACTIVATIONS[type];
+  const hp = HYPER[type];
+  let bestParams = null, bestMSE = Infinity;
+
+  for (let r = 0; r < RESTARTS; r++) {
+    const p = initParams(type);
+    let diverged = false;
+
+    for (let ep = 0; ep < hp.epochs; ep++) {
+      // Accumulate gradients over all points
+      let gw = new Float64Array(K);
+      let gb = new Float64Array(K);
+      let gv = new Float64Array(K);
+      let gc = 0;
+
+      for (let n = 0; n < N; n++) {
+        const x = trainX[n], y = trainY[n];
+        let yhat = p.c;
+        const z = new Float64Array(K);
+        const a = new Float64Array(K);
+
+        for (let i = 0; i < K; i++) {
+          z[i] = p.w[i] * x + p.b[i];
+          a[i] = act.fn(z[i]);
+          yhat += p.v[i] * a[i];
+        }
+
+        const err = yhat - y;
+        gc += err;
+
+        for (let i = 0; i < K; i++) {
+          gv[i] += err * a[i];
+          const dphi = act.dfn(z[i]);
+          const chain = err * p.v[i] * dphi;
+          gw[i] += chain * x;
+          gb[i] += chain;
+        }
+      }
+
+      // Scale and clip gradients, then update
+      const scale = 2 / N;
+      for (let i = 0; i < K; i++) {
+        p.w[i] -= hp.lr * clip(scale * gw[i], GRAD_CLIP);
+        p.b[i] -= hp.lr * clip(scale * gb[i], GRAD_CLIP);
+        p.v[i] -= hp.lr * clip(scale * gv[i], GRAD_CLIP);
+      }
+      p.c -= hp.lr * clip(scale * gc, GRAD_CLIP);
+
+      // Check for NaN
+      if (isNaN(p.c) || p.w.some(isNaN)) { diverged = true; break; }
+    }
+
+    if (diverged) continue;
+
+    // Compute final MSE
+    let mse = 0;
+    for (let n = 0; n < N; n++) {
+      let yhat = p.c;
+      for (let i = 0; i < K; i++) {
+        yhat += p.v[i] * act.fn(p.w[i] * trainX[n] + p.b[i]);
+      }
+      mse += (yhat - trainY[n]) ** 2;
+    }
+    mse /= N;
+
+    if (mse < bestMSE) {
+      bestMSE = mse;
+      bestParams = { w: [...p.w], b: [...p.b], v: [...p.v], c: p.c };
+    }
+  }
+
+  return { params: bestParams, mse: bestMSE };
+}
+
+// ========== State ==========
+const allResults = {};
+let currentType = 'rbf';
+
+const NEURON_COLORS = [
+  'var(--accent-1)', 'var(--accent-2)', 'var(--accent-3)',
+  'var(--accent-4)', 'var(--accent-5)'
+];
+const NEURON_COLORS_RAW = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444'];
+
+// ========== Drawing: Main Plot ==========
+const mainCanvas = document.getElementById('mainPlot');
+const mainCtx = mainCanvas.getContext('2d');
+const MW = 600, MH = 400;
+const xMin = -2.5, xMax = 2.5;
+const yMin = -1.5, yMax = 1.5;
+
+function mxToP(x) { return (x - xMin) / (xMax - xMin) * MW; }
+function myToP(y) { return MH - (y - yMin) / (yMax - yMin) * MH; }
+
+function drawMainPlot() {
+  const res = allResults[currentType];
+  if (!res || !res.params) return;
+  const act = ACTIVATIONS[currentType];
+  const p = res.params;
+  const ctx = mainCtx;
+
+  ctx.clearRect(0, 0, MW, MH);
+
+  // Grid
+  ctx.strokeStyle = '#f0f0f0';
+  ctx.lineWidth = 1;
+  for (let v = Math.ceil(xMin); v <= xMax; v++) {
+    ctx.beginPath(); ctx.moveTo(mxToP(v), 0); ctx.lineTo(mxToP(v), MH); ctx.stroke();
+  }
+  for (let v = Math.ceil(yMin); v <= yMax; v++) {
+    const py = myToP(v);
+    ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(MW, py); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = '#ccc';
+  ctx.lineWidth = 1.5;
+  const ox = mxToP(0), oy = myToP(0);
+  ctx.beginPath(); ctx.moveTo(ox, 0); ctx.lineTo(ox, MH); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, oy); ctx.lineTo(MW, oy); ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle = '#999';
+  ctx.font = '11px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  for (let v = Math.ceil(xMin); v <= xMax; v++) {
+    if (v === 0) continue;
+    ctx.fillText(v, mxToP(v), oy + 14);
+  }
+  ctx.textAlign = 'right';
+  for (let v = Math.ceil(yMin); v <= yMax; v++) {
+    if (v === 0) continue;
+    ctx.fillText(v.toFixed(1), ox - 6, myToP(v) + 4);
+  }
+
+  // Per-neuron contributions (colored dashed)
+  for (let i = 0; i < K; i++) {
+    ctx.strokeStyle = NEURON_COLORS_RAW[i] + '80';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    for (let px = 0; px <= MW; px += 2) {
+      const x = xMin + (px / MW) * (xMax - xMin);
+      const z = p.w[i] * x + p.b[i];
+      const c = p.v[i] * act.fn(z);
+      if (px === 0) ctx.moveTo(px, myToP(c));
+      else ctx.lineTo(px, myToP(c));
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // cos(x) true (gray dashed)
+  ctx.strokeStyle = 'rgba(100, 116, 139, 0.7)';
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  for (let px = 0; px <= MW; px += 2) {
+    const x = xMin + (px / MW) * (xMax - xMin);
+    const y = Math.cos(x);
+    if (px === 0) ctx.moveTo(px, myToP(y));
+    else ctx.lineTo(px, myToP(y));
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Network prediction (maroon solid)
+  ctx.strokeStyle = '#800000';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  for (let px = 0; px <= MW; px += 2) {
+    const x = xMin + (px / MW) * (xMax - xMin);
+    let yhat = p.c;
+    for (let i = 0; i < K; i++) {
+      yhat += p.v[i] * act.fn(p.w[i] * x + p.b[i]);
+    }
+    if (px === 0) ctx.moveTo(px, myToP(yhat));
+    else ctx.lineTo(px, myToP(yhat));
+  }
+  ctx.stroke();
+
+  // Training points
+  for (let n = 0; n < N; n++) {
+    ctx.beginPath();
+    ctx.arc(mxToP(trainX[n]), myToP(trainY[n]), 3, 0, 2 * Math.PI);
+    ctx.fillStyle = 'rgba(100, 116, 139, 0.4)';
+    ctx.fill();
+  }
+
+  // Legend
+  const lx = 15, ly = 18;
+  ctx.font = '12px -apple-system, sans-serif';
+  ctx.textAlign = 'left';
+
+  ctx.setLineDash([6, 4]);
+  ctx.strokeStyle = 'rgba(100, 116, 139, 0.7)';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + 25, ly); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#333';
+  ctx.fillText('cos(x)', lx + 30, ly + 4);
+
+  ctx.strokeStyle = '#800000';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(lx, ly + 18); ctx.lineTo(lx + 25, ly + 18); ctx.stroke();
+  ctx.fillText('\u0177(x) prediction', lx + 30, ly + 22);
+
+  for (let i = 0; i < K; i++) {
+    const yy = ly + 36 + i * 16;
+    ctx.setLineDash([4, 3]);
+    ctx.strokeStyle = NEURON_COLORS_RAW[i] + '80';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(lx, yy); ctx.lineTo(lx + 25, yy); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#333';
+    ctx.fillText('Neuron ' + (i + 1), lx + 30, yy + 4);
+  }
+}
+
+// ========== Drawing: Small Canvases ==========
+function drawSmallCanvas(canvasId, fn, color) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Evaluate
+  const points = [];
+  let ylo = Infinity, yhi = -Infinity;
+  for (let px = 0; px <= W; px += 2) {
+    const x = -2 + 4 * px / W;
+    const y = fn(x);
+    points.push({ px, y });
+    if (isFinite(y)) {
+      if (y < ylo) ylo = y;
+      if (y > yhi) yhi = y;
+    }
+  }
+
+  // Ensure some range
+  if (yhi - ylo < 0.01) {
+    const mid = (yhi + ylo) / 2;
+    ylo = mid - 0.1;
+    yhi = mid + 0.1;
+  }
+  const pad = (yhi - ylo) * 0.12;
+  ylo -= pad;
+  yhi += pad;
+
+  const yToP = y => H - (y - ylo) / (yhi - ylo) * H;
+
+  // Zero line
+  if (ylo < 0 && yhi > 0) {
+    ctx.strokeStyle = '#e8e8e8';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, yToP(0));
+    ctx.lineTo(W, yToP(0));
+    ctx.stroke();
+  }
+
+  // Curve
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  let started = false;
+  for (const pt of points) {
+    const py = yToP(pt.y);
+    if (!started) { ctx.moveTo(pt.px, py); started = true; }
+    else ctx.lineTo(pt.px, py);
+  }
+  ctx.stroke();
+
+  // Y-axis tick labels
+  ctx.fillStyle = '#aaa';
+  ctx.font = '9px -apple-system, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(yhi.toFixed(2), 2, 10);
+  ctx.fillText(ylo.toFixed(2), 2, H - 3);
+}
+
+function drawNeuronPlots() {
+  const res = allResults[currentType];
+  if (!res || !res.params) return;
+  const act = ACTIVATIONS[currentType];
+  const p = res.params;
+
+  for (let i = 0; i < K; i++) {
+    const color = NEURON_COLORS_RAW[i];
+
+    // Raw activation
+    drawSmallCanvas('raw-' + i, x => {
+      const z = p.w[i] * x + p.b[i];
+      return act.fn(z);
+    }, color);
+
+    // Weighted contribution
+    drawSmallCanvas('wt-' + i, x => {
+      const z = p.w[i] * x + p.b[i];
+      return p.v[i] * act.fn(z);
+    }, color);
+  }
+}
+
+// ========== Parameter Table ==========
+function updateParamTable() {
+  const res = allResults[currentType];
+  if (!res || !res.params) return;
+  const p = res.params;
+
+  document.getElementById('param-act-label').textContent = ACTIVATIONS[currentType].label;
+
+  const tbody = document.getElementById('param-body');
+  tbody.innerHTML = '';
+  for (let i = 0; i < K; i++) {
+    const tr = document.createElement('tr');
+    const center = p.w[i] !== 0 ? (-p.b[i] / p.w[i]).toFixed(3) : '&mdash;';
+    tr.innerHTML =
+      `<td style="color:${NEURON_COLORS_RAW[i]}; font-weight:700;">${i + 1}</td>` +
+      `<td>${p.w[i].toFixed(4)}</td>` +
+      `<td>${p.b[i].toFixed(4)}</td>` +
+      `<td>${p.v[i].toFixed(4)}</td>` +
+      `<td>${center}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById('param-c').textContent = p.c.toFixed(4);
+}
+
+// ========== MSE Bars ==========
+function updateMSEBars() {
+  const container = document.getElementById('mse-bars');
+  container.innerHTML = '';
+
+  const types = ['rbf', 'relu', 'sigmoid', 'tanh'];
+  const barColors = ['var(--accent-1)', 'var(--accent-2)', 'var(--accent-3)', 'var(--accent-5)'];
+  let maxMSE = 0;
+  for (const t of types) {
+    if (allResults[t]) maxMSE = Math.max(maxMSE, allResults[t].mse);
+  }
+  if (maxMSE < 1e-8) maxMSE = 1;
+
+  for (let j = 0; j < types.length; j++) {
+    const t = types[j];
+    const res = allResults[t];
+    if (!res) continue;
+    const pct = Math.max(1, (res.mse / maxMSE) * 100);
+
+    const row = document.createElement('div');
+    row.className = 'mse-bar-row' + (t === currentType ? ' active-bar' : '');
+    row.innerHTML =
+      `<span class="mse-bar-label">${ACTIVATIONS[t].label}</span>` +
+      `<div class="mse-bar-track"><div class="mse-bar-fill" style="width:${pct}%; background:${barColors[j]};"></div></div>` +
+      `<span class="mse-bar-value">${res.mse.toFixed(6)}</span>`;
+    container.appendChild(row);
+  }
+}
+
+// ========== Draw All ==========
+function drawAll() {
+  const res = allResults[currentType];
+  document.getElementById('mse-display').textContent =
+    res && res.params ? res.mse.toFixed(6) : '\u2014';
+  drawMainPlot();
+  drawNeuronPlots();
+  updateParamTable();
+  updateMSEBars();
+}
+
+// ========== UI Handlers ==========
+function selectActivation(type) {
+  currentType = type;
+  // Update button states
+  document.querySelectorAll('#act-selector button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.type === type);
+  });
+  drawAll();
+}
+
+document.querySelectorAll('#act-selector button').forEach(btn => {
+  btn.addEventListener('click', () => selectActivation(btn.dataset.type));
+});
+
+function retrain() {
+  allResults[currentType] = trainActivation(currentType);
+  drawAll();
+}
+
+// ========== Sidebar Scroll Highlighting ==========
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('nav.sidebar a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 120) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+}, { passive: true });
+
+// ========== Init: Train All Activations ==========
+(function init() {
+  const types = ['rbf', 'relu', 'sigmoid', 'tanh'];
+  for (const t of types) {
+    allResults[t] = trainActivation(t);
+  }
+  selectActivation('rbf');
+})();
+</script>
+
+</body>
+</html>
